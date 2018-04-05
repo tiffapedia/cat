@@ -6,12 +6,15 @@ date: \today
 output: pdf_document
 ---
 
-# Pilot study 1
+# Pilot study 2
 
 ```{r}
 d <- read.csv(file="./W241 Colby Carter, Tiffany Jaya, Abhishek Agarwal_April 5, 2018_00.27.csv",
               header=TRUE, 
               sep=",")
+# clean up dataset
+d <- tail(d, -2)
+rownames(d) <- 1:nrow(d)
 ```
 
 ```{r}
@@ -21,9 +24,15 @@ colnames(d)
 * StartDate in America/Denver timezone informs us when the subject starts the survey.
 * EndDate in America/Denver timezone informs us when the subject finishes the survey.
 * IPAddress is the IPAddress of the subject.
-* Progress in percentage is how far along subject took the survey. 
-  We prefer if subject took 100% of the survey.
+* Progress in percentage is how far along subject took the survey. We prefer if subject took 100% of the survey.
 * Duration in seconds informs us how long the subject takes the survey.
 * Finished in boolean is similar to Progress in that it informs us whether or not the subject finishes the survey.
 * LocationLatitude and LocationLongitude inform us the latitude and longitude of the subject.
 * UserLanguage will inform us what is the default subject's language is.
+* Q1.1 will inform us whether or not the subject accepts the consent form. If not, subject will not be able to take the survey.
+* Q2.1 will inform us how long subject takes reading the consent form.
+* Q2.2_1
+* 
+
+
+
