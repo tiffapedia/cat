@@ -1,0 +1,14 @@
+---
+title: "Final Report"
+subtitle: "Experiments and Causality"
+author: "Colby Carter, Abhishek Agarwal, Tiffany Jaya"
+date: \today
+output: pdf_document
+---
+
+
+```{r}
+# download data
+
+```
+
