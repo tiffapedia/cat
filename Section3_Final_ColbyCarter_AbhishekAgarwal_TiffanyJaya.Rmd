@@ -6,16 +6,128 @@ date: \today
 output: pdf_document
 ---
 
-# Pilot study 2
+## Load the libraries
+
+```{r, message=FALSE}
+library(data.table) # fread
+library(dplyr)
+library(lmtest) # coeftest
+library(lubridate) # time conversion
+library(sandwich) # vcovHC
+```
+
+## Helper functions
 
 ```{r}
-d <- read.csv(file="./W241 Colby Carter, Tiffany Jaya, Abhishek Agarwal_April 5, 2018_00.27.csv",
-              header=TRUE, 
-              sep=",")
-# clean up dataset
-d <- tail(d, -2)
-rownames(d) <- 1:nrow(d)
+convert_fctr_to_datetime <- function(col) {
+  return(as.POSIXct(col, format="%Y-%m-%d %H:%M:%S"))
+}
+
+convert_fctr_to_numeric <- function(col) {
+  return(as.numeric(levels(col)[col]))
+}
+
 ```
+
+## Load the dataset
+
+```{r}
+# pilot study
+d <- read.csv(file = "./W241 Colby Carter, Tiffany Jaya, Abhishek Agarwal_April 5, 2018_00.27.csv",
+              header = TRUE, 
+              sep = ",")
+head(d)
+```
+
+```{r}
+# actual study
+d <- read.csv(file = "./W241 Colby Carter, Tiffany Jaya, Abhishek Agarwal_April 12, 2018_09.41.csv",
+              header = TRUE, 
+              sep = ",")
+head(d)
+```
+
+## Clean up the dataset
+
+```{r}
+# 1. remove the first two rows
+d <- tail(d, -2)
+# 2. remove rownames to avoid confusion (because it is not the subject's id)
+rownames(d) <- NULL
+# 3. safely convert columns of type factors to their respective types
+# 3a. factor -> datetime
+cols <- c("StartDate", "EndDate")
+d[,cols] <- lapply(d[,cols], convert_fctr_to_datetime)
+# 3b. factor -> numeric
+#lapply(d,convert_fctr_to_numeric)
+```
+
+```{r}
+# rename columns to be more descriptive
+setnames(d, 
+         old = c("Q1.1", 
+                 "Q2.2_1",
+                 "Q2.3_1",
+                 "Q2.5_1",
+                 "Q2.7_1",
+                 "Q3.1_1", 
+                 "Q3.3_1",
+                 "Q3.5_1",
+                 "Q3.7_1",
+                 "Q4.1",
+                 "Q4.2",
+                 "Q4.3",
+                 "Q4.4",
+                 "Q4.5",
+                 "Q4.6",
+                 "Q4.7",
+                 "Q4.8",
+                 "Q4.9",
+                 "Q4.10",
+                 "Q4.11",
+                 "Q4.12",
+                 "Q4.13",
+                 "Q4.14",
+                 "Q4.15",
+                 "Q4.16"),
+         new = c("consent", 
+                 "control_employment",
+                 "control_education", # baseline
+                 "control_retirement",
+                 "control_cybersecurity",
+                 "treatment_employment",
+                 "treatment_education", # baseline,
+                 "treatment_retirement",
+                 "treatment_cybersecurity",
+                 "gender",
+                 "age",
+                 "highest_education",
+                 "employment_status",
+                 "marital_status",
+                 "zip_code",
+                 "community", # rural, urban, suburban
+                 "can_vote",
+                 "political_party",
+                 "ethnicity",
+                 "income",
+                 "have_kids",
+                 "internet_from_mobile",
+                 "internet_from_home",
+                 "internet_from_work",
+                 "who_pays_internet"))
+```
+
+```{r}
+duration.control_employment
+```
+
+
+```{r}
+d
+```
+
+
+## List all the columns
 
 ```{r}
 colnames(d)
@@ -31,8 +143,17 @@ colnames(d)
 * UserLanguage will inform us what is the default subject's language is.
 * Q1.1 will inform us whether or not the subject accepts the consent form. If not, subject will not be able to take the survey.
 * Q2.1 will inform us how long subject takes reading the consent form.
-* Q2.2_1
+* Q2.2_1 is the control survey question asking the subject about their general outlook on employment for the next two decades. 
+* Q2.3_1 is the baseline question asking the subject about how the education system is preparing students to enter the workforce.
+* Q2.5_1 is the control survey question asking the subject about their prospect for saving enough for retirment.
+* Q2.7_1 is the control survey question asking the subject how they rate the threat of cyberattacks.
 * 
 
+## Analysis
+
+
+## References
+
+1. renaming column names: http://rprogramming.net/rename-columns-in-r/ 
 
 
