@@ -19,6 +19,10 @@ library(sandwich) # vcovHC
 ## Helper functions
 
 ```{r}
+convert_fctr_to_boolean <- function(col) {
+  return(as.numeric(as.logical(col)))
+}
+
 convert_fctr_to_datetime <- function(col) {
   return(as.POSIXct(col, format="%Y-%m-%d %H:%M:%S"))
 }
@@ -27,6 +31,9 @@ convert_fctr_to_numeric <- function(col) {
   return(as.numeric(levels(col)[col]))
 }
 
+convert_fctr_to_str <- function(col) {
+  return(as.character(col))
+}
 ```
 
 ## Load the dataset
@@ -36,7 +43,6 @@ convert_fctr_to_numeric <- function(col) {
 d <- read.csv(file = "./W241 Colby Carter, Tiffany Jaya, Abhishek Agarwal_April 5, 2018_00.27.csv",
               header = TRUE, 
               sep = ",")
-head(d)
 ```
 
 ```{r}
@@ -44,23 +50,11 @@ head(d)
 d <- read.csv(file = "./W241 Colby Carter, Tiffany Jaya, Abhishek Agarwal_April 12, 2018_09.41.csv",
               header = TRUE, 
               sep = ",")
-head(d)
 ```
 
 ## Clean up the dataset
 
-```{r}
-# 1. remove the first two rows
-d <- tail(d, -2)
-# 2. remove rownames to avoid confusion (because it is not the subject's id)
-rownames(d) <- NULL
-# 3. safely convert columns of type factors to their respective types
-# 3a. factor -> datetime
-cols <- c("StartDate", "EndDate")
-d[,cols] <- lapply(d[,cols], convert_fctr_to_datetime)
-# 3b. factor -> numeric
-#lapply(d,convert_fctr_to_numeric)
-```
+**WARNING: DO NOT RERUN THIS SECTION TWICE!**
 
 ```{r}
 # rename columns to be more descriptive
@@ -118,12 +112,28 @@ setnames(d,
 ```
 
 ```{r}
-duration.control_employment
+# 1. remove the first two rows
+d <- tail(d, -2)
+# 2. remove rownames to avoid confusion (because it is not the subject's id)
+rownames(d) <- NULL
+# 3. safely convert columns of type factors to their respective types
+# 3a. factor -> datetime
+cols <- c("StartDate", "EndDate")
+d[,cols] <- lapply(d[,cols], convert_fctr_to_datetime)
+# 3b. factor -> logical/boolean
+cols <- c("Finished")
+d[,cols] <- lapply(d[,cols], convert_fctr_to_boolean)
+d$consent <- ifelse(d$consent == "Yes", 1, 0)
+# 3c. factor -> numeric
+cols <- c("Progress", "Duration..in.seconds.")
+d[,cols] <- lapply(d[,cols], convert_fctr_to_numeric)
+# 3d. factor -> str
+cols <- c("IPAddress", "ResponseId", "UserLanguage")
+d[,cols] <- lapply(d[,cols], convert_fctr_to_str)
 ```
 
-
 ```{r}
-d
+#d
 ```
 
 
@@ -133,23 +143,52 @@ d
 colnames(d)
 ```
 
-* StartDate in America/Denver timezone informs us when the subject starts the survey.
-* EndDate in America/Denver timezone informs us when the subject finishes the survey.
-* IPAddress is the IPAddress of the subject.
-* Progress in percentage is how far along subject took the survey. We prefer if subject took 100% of the survey.
-* Duration in seconds informs us how long the subject takes the survey.
-* Finished in boolean is similar to Progress in that it informs us whether or not the subject finishes the survey.
-* LocationLatitude and LocationLongitude inform us the latitude and longitude of the subject.
-* UserLanguage will inform us what is the default subject's language is.
-* Q1.1 will inform us whether or not the subject accepts the consent form. If not, subject will not be able to take the survey.
-* Q2.1 will inform us how long subject takes reading the consent form.
-* Q2.2_1 is the control survey question asking the subject about their general outlook on employment for the next two decades. 
-* Q2.3_1 is the baseline question asking the subject about how the education system is preparing students to enter the workforce.
-* Q2.5_1 is the control survey question asking the subject about their prospect for saving enough for retirment.
-* Q2.7_1 is the control survey question asking the subject how they rate the threat of cyberattacks.
-* 
-
 ## Analysis
+
+```{r}
+# how many subjects take the survey?
+nrow(d)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# how many subjects did not finish the survey?
+sum(!d$Finished)
+
+hist(d$Progress, 
+     xlab = "progress (%)",
+     ylab = "number of users",
+     breaks = -0.5:100.5, 
+     ylim = c(0, 700),
+     labels = TRUE)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# how long does it take the subjects to finish the survey in minutes?
+summary(d$Duration..in.seconds./60)
+```
+
+```{r}
+# list all subjects who did not consent
+subjects.no_consent <- d[which(d$consent == 0),]
+nrow(subjects.no_consent)
+```
+
+```{r}
+# list all the subjects who take less than 2 minutes to finish the survey
+subjects.less_2_min <- d[which(d$Duration..in.seconds./60 < 2),]
+nrow(subjects.less_2_min)
+```
+
+```{r}
+# verify that the subjects who did not consent 
+# match the subjects who took the survey less than 2 minutes
+all(subjects.less_2_min$ResponseId %in% subjects.no_consent$ResponseId)
+```
+
+```{r}
+# list all languages not in English
+d[which(d$UserLanguage != "EN"),]$UserLanguage
+```
 
 
 ## References
