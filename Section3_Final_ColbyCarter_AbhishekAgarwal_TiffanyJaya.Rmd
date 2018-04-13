@@ -18,6 +18,11 @@ library(sandwich) # vcovHC
 library(RJSONIO)
 ```
 
+```{r, echo=FALSE}
+# login information
+options(geonamesUsername="sullivannicole")
+```
+
 ## Helper functions
 
 ```{r}
@@ -199,7 +204,6 @@ d[which(d$UserLanguage != "EN"),]$UserLanguage
 
 ```{r}
 # get country information based on latlong
-options(geonamesUsername="sullivannicole")
 country_names <- mapply(
   function(lat, lng) {
     suppressWarnings(try(GNcountryCode(lat, lng)$countryName, silent = TRUE))
@@ -209,6 +213,9 @@ country_names <- mapply(
 ```{r}
 as.data.frame(table(country_names))
 ```
+
+ResponseID is unique
+
 
 TODO: filter out just the USA
 
@@ -268,7 +275,7 @@ This will always fail because of the limitation to the number of API calls:
 ll <- revgeo(longitude = d$LocationLongitude, latitude = d$LocationLatitude, output = "frame", provider = "google", API = "AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
 ```
 
-Getting the USA (or any other country)'s latlong
+Getting USA (or any other country)'s latlong
 
 ```
 library(ggmap)
