@@ -11,6 +11,7 @@ output: pdf_document
 ```{r, message=FALSE}
 library(data.table) # fread
 library(dplyr)
+library(geonames)
 library(lmtest) # coeftest
 library(lubridate) # time conversion
 library(sandwich) # vcovHC
@@ -34,31 +35,6 @@ convert_fctr_to_numeric <- function(col) {
 
 convert_fctr_to_str <- function(col) {
   return(as.character(col))
-}
-
-freegeoip <- function(ip, format = ifelse(length(ip)==1,'list','dataframe'))
-{
-    if (1 == length(ip))
-    {
-        # a single IP address
-        url <- paste(c("http://api.ipstack.com/", ip, "?access_key=0e93a4defcd645bd8829ad75a7223437&output=json&legacy=1/"), collapse='')
-        ret <- fromJSON(readLines(url, warn=FALSE))
-        if (format == 'dataframe')
-            ret <- data.frame(t(unlist(ret)))
-        return(ret)
-    } else {
-        ret <- data.frame()
-        for (i in 1:length(ip))
-        {
-            r <- freegeoip(ip[i], format="dataframe")
-            ret <- bind_rows(ret, r)
-        }
-        return(ret)
-    }
-}   
-
-try.ip <- function(ip) {
-  suppressWarnings(try(freegeoip(ip), silent = TRUE))
 }
 ```
 
@@ -222,77 +198,79 @@ d[which(d$UserLanguage != "EN"),]$UserLanguage
 ```
 
 ```{r}
-# get information about the ips
-#(ips <- try.ip(d$IPAddress))
-```
-
-https://maps.googleapis.com/maps/api/geocode/json?latlng=40.714224,-73.961452&key=AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik
-
-```{r}
-library(revgeo)
-revgeo(longitude=-73.961452, latitude=40.714224, output="frame", provider="google", API="AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
-```
-
-
-ll <- c()
-for(i in seq(1, nrow(d), 100)) {
-  ll_current <- revgeo(longitude = d$LocationLongitude[1:100], latitude = d$LocationLatitude[1:100], output = "frame", provider = "google", API = "AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
-  bind_rows(ll, ll_current)
-}
-
-
-```{r}
-ll_100 <- revgeo(longitude = d$LocationLongitude[1:100], latitude = d$LocationLatitude[1:100], output = "frame", provider = "google", API = "AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
-```
-```{r}
-ll_200 <- revgeo(longitude = d$LocationLongitude[101:200], latitude = d$LocationLatitude[101:200], output = "frame", provider = "google", API = "AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
-```
-```{r}
-ll <- revgeo(longitude = d$LocationLongitude, latitude = d$LocationLatitude, output = "frame", provider = "google", API = "AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
-```
-
-```{r}
-length(d$LocationLatitude)
-length(d$LocationLongitude)
-```
-
-```{r}
-sum(is.na(d$LocationLatitude))
-sum(is.na(d$LocationLongitude))
-```
-
-
-```{r}
-ll %>%
-  group_by(country) %>%
-  summarize(freq = sum(n()))
-```
-
-
-```{r}
-library(ggmap)
-geocode("USA")
-```
-
-```{r}
-library(geonames)
+# get country information based on latlong
 options(geonamesUsername="sullivannicole")
-country_names <- c()
-mapply(function(lat, lng) {
-  country_name <- suppressWarnings(try(GNcountryCode(lat, lng)$countryName, silent = TRUE))
-  append(country_names, country_name)
-}, d$LocationLatitude, d$LocationLongitude)
+country_names <- mapply(
+  function(lat, lng) {
+    suppressWarnings(try(GNcountryCode(lat, lng)$countryName, silent = TRUE))
+  }, d$LocationLatitude, d$LocationLongitude)
 ```
 
 ```{r}
-ll %>%
-  group_by(country) %>%
-  summarize(freq = sum(n()))
+as.data.frame(table(country_names))
 ```
 
+TODO: filter out just the USA
 
 ## References
 
 1. renaming column names: http://rprogramming.net/rename-columns-in-r/ 
 
+## Unused stuff
 
+### IP
+Get state, country information from IPs. IPs are not reliable though. Plus, it's dang slow.
+
+```
+freegeoip <- function(ip, format = ifelse(length(ip)==1,'list','dataframe'))
+{
+    if (1 == length(ip))
+    {
+        # a single IP address
+        url <- paste(c("http://api.ipstack.com/", ip, "?access_key=0e93a4defcd645bd8829ad75a7223437&output=json&legacy=1/"), collapse='')
+        ret <- fromJSON(readLines(url, warn=FALSE))
+        if (format == 'dataframe')
+            ret <- data.frame(t(unlist(ret)))
+        return(ret)
+    } else {
+        ret <- data.frame()
+        for (i in 1:length(ip))
+        {
+            r <- freegeoip(ip[i], format="dataframe")
+            ret <- bind_rows(ret, r)
+        }
+        return(ret)
+    }
+}   
+
+try.ip <- function(ip) {
+  suppressWarnings(try(freegeoip(ip), silent = TRUE))
+}
+
+ips <- try.ip(d$IPAddress)
+```
+
+### LatLong
+
+Get state, country information from Google API. Unfortunately, it's taking too long and Google has a limit for the number of API calls.
+
+How to call the API via the browser:
+https://maps.googleapis.com/maps/api/geocode/json?latlng=40.714224,-73.961452&key=AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik
+
+How to call the API via R:
+```
+library(revgeo)
+revgeo(longitude=-73.961452, latitude=40.714224, output="frame", provider="google", API="AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
+```
+
+This will always fail because of the limitation to the number of API calls:
+```
+ll <- revgeo(longitude = d$LocationLongitude, latitude = d$LocationLatitude, output = "frame", provider = "google", API = "AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
+```
+
+Getting the USA (or any other country)'s latlong
+
+```
+library(ggmap)
+geocode("USA")
+```
