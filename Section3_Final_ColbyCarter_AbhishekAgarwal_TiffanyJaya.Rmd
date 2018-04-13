@@ -14,6 +14,7 @@ library(dplyr)
 library(lmtest) # coeftest
 library(lubridate) # time conversion
 library(sandwich) # vcovHC
+library(RJSONIO)
 ```
 
 ## Helper functions
@@ -33,6 +34,31 @@ convert_fctr_to_numeric <- function(col) {
 
 convert_fctr_to_str <- function(col) {
   return(as.character(col))
+}
+
+freegeoip <- function(ip, format = ifelse(length(ip)==1,'list','dataframe'))
+{
+    if (1 == length(ip))
+    {
+        # a single IP address
+        url <- paste(c("http://api.ipstack.com/", ip, "?access_key=0e93a4defcd645bd8829ad75a7223437&output=json&legacy=1/"), collapse='')
+        ret <- fromJSON(readLines(url, warn=FALSE))
+        if (format == 'dataframe')
+            ret <- data.frame(t(unlist(ret)))
+        return(ret)
+    } else {
+        ret <- data.frame()
+        for (i in 1:length(ip))
+        {
+            r <- freegeoip(ip[i], format="dataframe")
+            ret <- bind_rows(ret, r)
+        }
+        return(ret)
+    }
+}   
+
+try.ip <- function(ip) {
+  suppressWarnings(try(freegeoip(ip), silent = TRUE))
 }
 ```
 
@@ -118,14 +144,19 @@ d <- tail(d, -2)
 rownames(d) <- NULL
 # 3. safely convert columns of type factors to their respective types
 # 3a. factor -> datetime
-cols <- c("StartDate", "EndDate")
+cols <- c("StartDate", "EndDate", "RecordedDate")
 d[,cols] <- lapply(d[,cols], convert_fctr_to_datetime)
 # 3b. factor -> logical/boolean
 cols <- c("Finished")
 d[,cols] <- lapply(d[,cols], convert_fctr_to_boolean)
 d$consent <- ifelse(d$consent == "Yes", 1, 0)
+d$can_vote <- ifelse(d$can_vote == "Yes", 1, 0)
+d$have_kids <- ifelse(d$have_kids == "Yes", 1, 0)
 # 3c. factor -> numeric
-cols <- c("Progress", "Duration..in.seconds.")
+cols <- c("Progress", "Duration..in.seconds.", 
+          "control_employment", "control_education", "control_retirement", "control_cybersecurity",
+          "treatment_employment", "treatment_education", "treatment_retirement", "treatment_cybersecurity",
+          "zip_code")
 d[,cols] <- lapply(d[,cols], convert_fctr_to_numeric)
 # 3d. factor -> str
 cols <- c("IPAddress", "ResponseId", "UserLanguage")
@@ -133,7 +164,7 @@ d[,cols] <- lapply(d[,cols], convert_fctr_to_str)
 ```
 
 ```{r}
-#d
+d
 ```
 
 
@@ -188,6 +219,15 @@ all(subjects.less_2_min$ResponseId %in% subjects.no_consent$ResponseId)
 ```{r}
 # list all languages not in English
 d[which(d$UserLanguage != "EN"),]$UserLanguage
+```
+
+```{r}
+# get information about the ips
+(ips <- try.ip(d$IPAddress))
+```
+
+```{r}
+ips$country
 ```
 
 
