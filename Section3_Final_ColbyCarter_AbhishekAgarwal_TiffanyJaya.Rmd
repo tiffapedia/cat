@@ -226,38 +226,70 @@ d[which(d$UserLanguage != "EN"),]$UserLanguage
 #(ips <- try.ip(d$IPAddress))
 ```
 
-```{r}
-d$IPAddress
-```
-
-
-
-```{r}
-for(i in 1:length(d$IPAddress)) {
-  if(i %% 10 == 0){
-    
-    cat
-  }
-}
-```
-
-```{r}
-library(geonames)
-lapply(d, function(row) GNCountryCode(row$latitude, row$longitude)$countryName)
-```
-
-```{r}
 https://maps.googleapis.com/maps/api/geocode/json?latlng=40.714224,-73.961452&key=AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik
-```
 
 ```{r}
 library(revgeo)
 revgeo(longitude=-73.961452, latitude=40.714224, output="frame", provider="google", API="AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
 ```
-```{r}
 
-revgeo(longitude = d$LocationLongitude, latitude = d$LocationLatitude, output = "frame", provider = "google", API = "AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
+
+ll <- c()
+for(i in seq(1, nrow(d), 100)) {
+  ll_current <- revgeo(longitude = d$LocationLongitude[1:100], latitude = d$LocationLatitude[1:100], output = "frame", provider = "google", API = "AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
+  bind_rows(ll, ll_current)
+}
+
+
+```{r}
+ll_100 <- revgeo(longitude = d$LocationLongitude[1:100], latitude = d$LocationLatitude[1:100], output = "frame", provider = "google", API = "AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
 ```
+```{r}
+ll_200 <- revgeo(longitude = d$LocationLongitude[101:200], latitude = d$LocationLatitude[101:200], output = "frame", provider = "google", API = "AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
+```
+```{r}
+ll <- revgeo(longitude = d$LocationLongitude, latitude = d$LocationLatitude, output = "frame", provider = "google", API = "AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
+```
+
+```{r}
+length(d$LocationLatitude)
+length(d$LocationLongitude)
+```
+
+```{r}
+sum(is.na(d$LocationLatitude))
+sum(is.na(d$LocationLongitude))
+```
+
+
+```{r}
+ll %>%
+  group_by(country) %>%
+  summarize(freq = sum(n()))
+```
+
+
+```{r}
+library(ggmap)
+geocode("USA")
+```
+
+```{r}
+library(geonames)
+options(geonamesUsername="sullivannicole")
+country_names <- c()
+mapply(function(lat, lng) {
+  country_name <- suppressWarnings(try(GNcountryCode(lat, lng)$countryName, silent = TRUE))
+  append(country_names, country_name)
+}, d$LocationLatitude, d$LocationLongitude)
+```
+
+```{r}
+ll %>%
+  group_by(country) %>%
+  summarize(freq = sum(n()))
+```
+
 
 ## References
 
