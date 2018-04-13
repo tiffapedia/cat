@@ -153,7 +153,7 @@ d$consent <- ifelse(d$consent == "Yes", 1, 0)
 d$can_vote <- ifelse(d$can_vote == "Yes", 1, 0)
 d$have_kids <- ifelse(d$have_kids == "Yes", 1, 0)
 # 3c. factor -> numeric
-cols <- c("Progress", "Duration..in.seconds.", 
+cols <- c("Progress", "Duration..in.seconds.", "LocationLatitude", "LocationLongitude",
           "control_employment", "control_education", "control_retirement", "control_cybersecurity",
           "treatment_employment", "treatment_education", "treatment_retirement", "treatment_cybersecurity",
           "zip_code")
@@ -223,13 +223,41 @@ d[which(d$UserLanguage != "EN"),]$UserLanguage
 
 ```{r}
 # get information about the ips
-(ips <- try.ip(d$IPAddress))
+#(ips <- try.ip(d$IPAddress))
 ```
 
 ```{r}
-ips$country
+d$IPAddress
 ```
 
+
+
+```{r}
+for(i in 1:length(d$IPAddress)) {
+  if(i %% 10 == 0){
+    
+    cat
+  }
+}
+```
+
+```{r}
+library(geonames)
+lapply(d, function(row) GNCountryCode(row$latitude, row$longitude)$countryName)
+```
+
+```{r}
+https://maps.googleapis.com/maps/api/geocode/json?latlng=40.714224,-73.961452&key=AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik
+```
+
+```{r}
+library(revgeo)
+revgeo(longitude=-73.961452, latitude=40.714224, output="frame", provider="google", API="AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
+```
+```{r}
+
+revgeo(longitude = d$LocationLongitude, latitude = d$LocationLatitude, output = "frame", provider = "google", API = "AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
+```
 
 ## References
 
