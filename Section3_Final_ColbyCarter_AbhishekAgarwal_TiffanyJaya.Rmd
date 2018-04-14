@@ -205,19 +205,29 @@ d[which(d$UserLanguage != "EN"),]$UserLanguage
 ```{r}
 # get country information based on latlong
 country_names <- mapply(
-  function(lat, lng) {
-    suppressWarnings(try(GNcountryCode(lat, lng)$countryName, silent = TRUE))
+  function(lat, long) {
+    suppressWarnings(try(GNcountryCode(lat, long)$countryName, silent = TRUE))
   }, d$LocationLatitude, d$LocationLongitude)
+d$country <- country_names
 ```
 
 ```{r}
-as.data.frame(table(country_names))
+# how many subjects are from United States?
+d$country %>%
+  group_by(country_name == "United States")
+  summarize(freq = sum(n()))
+# how many subjects are from outside the United States?
+d$country %>%
+  group_by(country_name != "United States")
+  summarize(freq = sum(n()))
 ```
 
-ResponseID is unique
+```{r}
+# filter out USA subjects
+d.usa <- d %>% filter(country == "USA")
+d.usa
+```
 
-
-TODO: filter out just the USA
 
 ## References
 
