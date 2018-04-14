@@ -210,22 +210,20 @@ country_names <- mapply(
   }, d$LocationLatitude, d$LocationLongitude)
 d$country <- country_names
 ```
-
 ```{r}
 # how many subjects are from United States?
-d$country %>%
-  group_by(country_name == "United States")
-  summarize(freq = sum(n()))
+d %>%
+  filter(., country == "United States") %>%
+  count(.)
 # how many subjects are from outside the United States?
-d$country %>%
-  group_by(country_name != "United States")
-  summarize(freq = sum(n()))
+d %>%
+  filter(., country != "United States") %>%
+  count(.)
 ```
 
 ```{r}
 # filter out USA subjects
-d.usa <- d %>% filter(country == "USA")
-d.usa
+d.usa <- d %>% filter(., country == "United States")
 ```
 
 
