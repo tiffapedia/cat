@@ -389,54 +389,49 @@ Out of 638 subjects, 580 subjects are from the United States and 58 are from out
 ### Verify that subjects only took the survey once
 
 ```{r}
-# 
+d %>% 
+  group_by(IPAddress) %>% 
+  summarize(freq = sum(n())) %>%
+  filter(freq > 1)
 ```
 
+```{r}
+d %>% filter(IPAddress == "170.185.202.19")
+```
+
+1: control, female, 25-34, professional, married, suburban, republican, white, $50-59k, 0 kids, 
+   internet daily from mobile/home/work, pay for internet
+2: treatment, female, 25-34, professional, married, suburban, independent, white, $90-99k, 1 kid, 
+   internet daily from mobile/home/work, pay for internet
+   
+```{r}
+d %>% filter(IPAddress == "24.46.117.154")
+```
+
+```{r}
+d %>% filter(IPAddress == "50.88.107.50")
+```
+
+```{r}
+d %>% filter(IPAddress == "67.183.210.112")
+```
+
+It might potentially be roommates, but this assumption cannot be validated. For this reason, we filter out the following people from the dataset.
+
+### Verify that subjects answer all the questions
 
 ```{r}
 # check if subjects in control answer all questions
-subjects.usa %>%
+d %>%
   select(control_employment, control_education, control_retirement, control_cybersecurity) %>%
   summarise_all(funs(sum(is.na(.))))
 ```
 
 ```{r}
 # check if subjects in treatment answer all questions
-subjects.usa %>%
+d %>%
   select(treatment_employment, treatment_education, treatment_retirement, treatment_cybersecurity) %>%
   summarise_all(funs(sum(is.na(.))))
-```
-
-# TODO 1
-
-people with incomplete data
-38.130.207.83
-172.58.201.123
-110.54.188.251
-24.62.129.49
-97.90.210.58
-172.73.12.254
-108.52.204.129
-107.77.196.93
-67.186.59.98
-
-```{r}
-subjects.usa %>% 
-  group_by(IPAddress) %>% 
-  summarize(freq = sum(n())) %>%
-  filter(freq > 1)
-```
-
-
-```{r}
-subjects.usa %>%
-  filter(IPAddress == "38.130.207.83") %>%
-  select(control_employment, control_education, control_retirement, control_cybersecurity)
-```
-
-
-```{r}
-# filter out only people with complete data
 ```
 
 # TODO 2
