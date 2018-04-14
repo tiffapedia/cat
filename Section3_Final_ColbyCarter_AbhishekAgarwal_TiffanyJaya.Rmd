@@ -90,7 +90,39 @@ setnames(d,
                  "Q4.13",
                  "Q4.14",
                  "Q4.15",
-                 "Q4.16"),
+                 "Q4.16", 
+                 "Q2.1_First.Click",
+                 "Q2.1_Last.Click",
+                 "Q2.1_Page.Submit",
+                 "Q2.1_Click.Count",
+                 "Q2.4_First.Click",
+                 "Q2.4_Last.Click",
+                 "Q2.4_Page.Submit",
+                 "Q2.4_Click.Count",
+                 "Q2.6_First.Click",
+                 "Q2.6_Last.Click",
+                 "Q2.6_Page.Submit",
+                 "Q2.6_Click.Count",
+                 "Q2.8_First.Click",
+                 "Q2.8_Last.Click",
+                 "Q2.8_Page.Submit",
+                 "Q2.8_Click.Count",
+                 "Q3.2_First.Click",
+                 "Q3.2_Last.Click",
+                 "Q3.2_Page.Submit",
+                 "Q3.2_Click.Count",
+                 "Q3.4_First.Click",
+                 "Q3.4_Last.Click",
+                 "Q3.4_Page.Submit",
+                 "Q3.4_Click.Count",
+                 "Q3.6_First.Click",
+                 "Q3.6_Last.Click",
+                 "Q3.6_Page.Submit",
+                 "Q3.6_Click.Count",
+                 "Q3.8_First.Click",
+                 "Q3.8_Last.Click",
+                 "Q3.8_Page.Submit",
+                 "Q3.8_Click.Count"),
          new = c("consent", 
                  "control_employment",
                  "control_education", # baseline
@@ -115,7 +147,39 @@ setnames(d,
                  "internet_from_mobile",
                  "internet_from_home",
                  "internet_from_work",
-                 "who_pays_internet"))
+                 "who_pays_internet",
+                 "control_employment_First.Click",
+                 "control_employment_Last.Click",
+                 "control_employment_Page.Submit",
+                 "control_employment_Click.Count",
+                 "control_education_First.Click",
+                 "control_education_Last.Click",
+                 "control_education_Page.Submit",
+                 "control_education_Click.Count",
+                 "control_retirement_First.Click",
+                 "control_retirement_Last.Click",
+                 "control_retirement_Page.Submit",
+                 "control_retirement_Click.Count",
+                 "control_cybersecurity_First.Click",
+                 "control_cybersecurity_Last.Click",
+                 "control_cybersecurity_Page.Submit",
+                 "control_cybersecurity_Click.Count",
+                 "treatment_employment_First.Click",
+                 "treatment_employment_Last.Click",
+                 "treatment_employment_Page.Submit",
+                 "treatment_employment_Click.Count",
+                 "treatment_education_First.Click",
+                 "treatment_education_Last.Click",
+                 "treatment_education_Page.Submit",
+                 "treatment_education_Click.Count",
+                 "treatment_retirement_First.Click",
+                 "treatment_retirement_Last.Click",
+                 "treatment_retirement_Page.Submit",
+                 "treatment_retirement_Click.Count",
+                 "treatment_cybersecurity_First.Click",
+                 "treatment_cybersecurity_Last.Click",
+                 "treatment_cybersecurity_Page.Submit",
+                 "treatment_cybersecurity_Click.Count"))
 ```
 
 ```{r}
@@ -134,10 +198,52 @@ d$consent <- ifelse(d$consent == "Yes", 1, 0)
 d$can_vote <- ifelse(d$can_vote == "Yes", 1, 0)
 d$have_kids <- ifelse(d$have_kids == "Yes", 1, 0)
 # 3c. factor -> numeric
-cols <- c("Progress", "Duration..in.seconds.", "LocationLatitude", "LocationLongitude",
-          "control_employment", "control_education", "control_retirement", "control_cybersecurity",
-          "treatment_employment", "treatment_education", "treatment_retirement", "treatment_cybersecurity",
-          "zip_code")
+cols <- c("Progress", 
+          "Duration..in.seconds.", 
+          "LocationLatitude", 
+          "LocationLongitude",
+          "control_employment", 
+          "control_education", 
+          "control_retirement", 
+          "control_cybersecurity",
+          "treatment_employment", 
+          "treatment_education", 
+          "treatment_retirement", 
+          "treatment_cybersecurity",
+          "zip_code",
+          "control_employment_First.Click", 
+          "control_employment_Last.Click", 
+          "control_employment_Page.Submit", 
+          "control_employment_Click.Count", 
+          "control_education_First.Click",
+          "control_education_Last.Click",
+          "control_education_Page.Submit",
+          "control_education_Click.Count",
+          "control_retirement_First.Click",
+          "control_retirement_Last.Click",
+          "control_retirement_Page.Submit",
+          "control_retirement_Click.Count",
+          "control_cybersecurity_First.Click",
+          "control_cybersecurity_Last.Click",
+          "control_cybersecurity_Page.Submit",
+          "control_cybersecurity_Click.Count",
+          "treatment_employment_First.Click",
+          "treatment_employment_Last.Click",
+          "treatment_employment_Page.Submit",
+          "treatment_employment_Click.Count",
+          "treatment_education_First.Click",
+          "treatment_education_Last.Click",
+          "treatment_education_Page.Submit",
+          "treatment_education_Click.Count",
+          "treatment_retirement_First.Click",
+          "treatment_retirement_Last.Click",
+          "treatment_retirement_Page.Submit",
+          "treatment_retirement_Click.Count",
+          "treatment_cybersecurity_First.Click",
+          "treatment_cybersecurity_Last.Click",
+          "treatment_cybersecurity_Page.Submit",
+          "treatment_cybersecurity_Click.Count"
+          )
 d[,cols] <- lapply(d[,cols], convert_fctr_to_numeric)
 # 3d. factor -> str
 cols <- c("IPAddress", "ResponseId", "UserLanguage")
@@ -156,6 +262,14 @@ colnames(d)
 ```
 
 ## Analysis
+
+```{r}
+# is ResponseId unique? 
+# if yes, use ResponseId as a unique id
+freq_responseid <- d %>% group_by(ResponseId) %>% summarize(freq = sum(n()))
+sum(freq_responseid$freq > 1) == 0
+```
+
 
 ```{r}
 # how many subjects take the survey?
@@ -212,19 +326,50 @@ d$country <- country_names
 ```
 ```{r}
 # how many subjects are from United States?
-d %>%
-  filter(., country == "United States") %>%
-  count(.)
+d %>% filter(., country == "United States") %>% count(.)
 # how many subjects are from outside the United States?
-d %>%
-  filter(., country != "United States") %>%
-  count(.)
+d %>% filter(., country != "United States") %>% count(.)
 ```
 
 ```{r}
 # filter out USA subjects
-d.usa <- d %>% filter(., country == "United States")
+subjects.usa <- d %>% filter(., country == "United States")
 ```
+
+# TODO 1
+
+people with incomplete data
+38.130.207.83
+172.58.201.123
+110.54.188.251
+24.62.129.49
+97.90.210.58
+172.73.12.254
+108.52.204.129
+107.77.196.93
+67.186.59.98
+
+```{r}
+# filter out only people with complete data
+```
+
+# TODO 2
+
+```{r}
+d
+```
+
+calculate length of time page_submit - first_click
+can use click.count as covariate
+can use length of time as covariate
+
+# TODO 3
+
+1) a pre-analysis/EDA, just looking at some plots of scores for each answer, with a few cuts by covariates (e.g. histograms by political preference, gender; box-whisker plots for age groups, etc.)
+
+# TODO 4
+
+2) then, for each question, starting with our education placebo test, we have a _stargazer_ output that has 3 regressions: a) with only the treatment dummy, b) with treatment plus key covariates, and c) with treatment, key covariates AND interaction terms (i.e. HTEs)
 
 
 ## References
