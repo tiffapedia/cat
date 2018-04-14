@@ -18,11 +18,6 @@ library(sandwich) # vcovHC
 library(RJSONIO)
 ```
 
-```{r, echo=FALSE}
-# login information
-options(geonamesUsername="sullivannicole")
-```
-
 ## Helper functions
 
 ```{r}
@@ -250,70 +245,11 @@ cols <- c("IPAddress", "ResponseId", "UserLanguage")
 d[,cols] <- lapply(d[,cols], convert_fctr_to_str)
 ```
 
-```{r}
-d
-```
+## Add additional information into the dataset
 
-
-## List all the columns
-
-```{r}
-colnames(d)
-```
-
-## Analysis
-
-```{r}
-# is ResponseId unique? 
-# if yes, use ResponseId as a unique id
-freq_responseid <- d %>% group_by(ResponseId) %>% summarize(freq = sum(n()))
-sum(freq_responseid$freq > 1) == 0
-```
-
-
-```{r}
-# how many subjects take the survey?
-nrow(d)
-```
-
-```{r out.width="49%", fig.align="center", fig.show="hold"}
-# how many subjects did not finish the survey?
-sum(!d$Finished)
-
-hist(d$Progress, 
-     xlab = "progress (%)",
-     ylab = "number of users",
-     breaks = -0.5:100.5, 
-     ylim = c(0, 700),
-     labels = TRUE)
-```
-
-```{r out.width="49%", fig.align="center", fig.show="hold"}
-# how long does it take the subjects to finish the survey in minutes?
-summary(d$Duration..in.seconds./60)
-```
-
-```{r}
-# list all subjects who did not consent
-subjects.no_consent <- d[which(d$consent == 0),]
-nrow(subjects.no_consent)
-```
-
-```{r}
-# list all the subjects who take less than 2 minutes to finish the survey
-subjects.less_2_min <- d[which(d$Duration..in.seconds./60 < 2),]
-nrow(subjects.less_2_min)
-```
-
-```{r}
-# verify that the subjects who did not consent 
-# match the subjects who took the survey less than 2 minutes
-all(subjects.less_2_min$ResponseId %in% subjects.no_consent$ResponseId)
-```
-
-```{r}
-# list all languages not in English
-d[which(d$UserLanguage != "EN"),]$UserLanguage
+```{r, echo=FALSE}
+# login information
+options(geonamesUsername="sullivannicole")
 ```
 
 ```{r}
@@ -324,16 +260,151 @@ country_names <- mapply(
   }, d$LocationLatitude, d$LocationLongitude)
 d$country <- country_names
 ```
+
+## List all the columns
+
 ```{r}
-# how many subjects are from United States?
-d %>% filter(., country == "United States") %>% count(.)
-# how many subjects are from outside the United States?
-d %>% filter(., country != "United States") %>% count(.)
+colnames(d)
+```
+
+## Analysis
+
+data: contains the original dataset
+```{r}
+# save a copy of the original dataset
+data <- d
+```
+
+### Filter
+
+d: contains the dataset after we filtered out for the following:
+
+1. subjects who did not finish the survey 100%
+2. subjects who consented to take the survey
+
+```{r}
+# filter out subjects who consented to take the survey
+d <- d[which(d$consent == 1),]
+```
+
+3. subjects who are from USA
+
+```{r}
+# filter out subjects who are from USA
+d <- d %>% filter(., country == "United States")
+```
+
+4. subjects who took the survey once
+  * if subjects took the survey more than once, we only look at their first time taking the survey
+
+```{r}
+
+```
+
+### How many took the survey?
+
+```{r}
+# how many subjects take the survey?
+nrow(data)
+```
+
+638 subjects take the survey.
+
+### Verify that ResponseId is unique
+
+```{r}
+# is ResponseId unique? 
+# if yes, use ResponseId as a unique id
+freq_responseid <- data %>% group_by(ResponseId) %>% summarize(freq = sum(n()))
+sum(freq_responseid$freq > 1) == 0
+```
+
+ResponseId is unique. 
+
+### Verify that all the subjects completed the survey
+
+```{r}
+# how many subjects did not finish the survey?
+sum(!data$Finished)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the progress of each subject
+hist(data$Progress, 
+     xlab = "progress (%)",
+     ylab = "number of users",
+     breaks = -0.5:100.5, 
+     ylim = c(0, 700),
+     labels = TRUE)
+```
+
+All of the subjects completed the survey. 
+
+### Verify that all subjects completed the survey in reasonable time (greater than 2 minutes)
+
+```{r}
+# how long does it take the subjects who consented to finish the survey in minutes?
+subjects.consent <- data[which(data$consent == 1),]
+summary(subjects.consent$Duration..in.seconds./60)
+```
+
+The following checks are unnecessary:
+
+```{r}
+# list all the subjects who take less than 2 minutes to finish the survey
+subjects.less_2_min <- data[which(data$Duration..in.seconds./60 < 2),]
+nrow(subjects.less_2_min)
 ```
 
 ```{r}
-# filter out USA subjects
-subjects.usa <- d %>% filter(., country == "United States")
+# list all subjects who did not consent
+subjects.no_consent <- data[which(data$consent == 0),]
+nrow(subjects.no_consent)
+```
+
+```{r}
+# verify that the subjects who did not consent 
+# match the subjects who took the survey in less than 2 minutes
+all(subjects.less_2_min$ResponseId %in% subjects.no_consent$ResponseId)
+```
+
+### Verify that all subjects have English set as their language
+
+```{r}
+# list all languages not in English
+data[which(data$UserLanguage != "EN"),]$UserLanguage
+```
+
+### Verify that all subjects are from United States
+
+```{r}
+# how many subjects are from United States?
+data %>% filter(., country == "United States") %>% count(.)
+# how many subjects are from outside the United States?
+data %>% filter(., country != "United States") %>% count(.)
+```
+
+Out of 638 subjects, 580 subjects are from the United States and 58 are from outside the United States.
+
+### Verify that subjects only took the survey once
+
+```{r}
+# 
+```
+
+
+```{r}
+# check if subjects in control answer all questions
+subjects.usa %>%
+  select(control_employment, control_education, control_retirement, control_cybersecurity) %>%
+  summarise_all(funs(sum(is.na(.))))
+```
+
+```{r}
+# check if subjects in treatment answer all questions
+subjects.usa %>%
+  select(treatment_employment, treatment_education, treatment_retirement, treatment_cybersecurity) %>%
+  summarise_all(funs(sum(is.na(.))))
 ```
 
 # TODO 1
@@ -350,18 +421,41 @@ people with incomplete data
 67.186.59.98
 
 ```{r}
+subjects.usa %>% 
+  group_by(IPAddress) %>% 
+  summarize(freq = sum(n())) %>%
+  filter(freq > 1)
+```
+
+
+```{r}
+subjects.usa %>%
+  filter(IPAddress == "38.130.207.83") %>%
+  select(control_employment, control_education, control_retirement, control_cybersecurity)
+```
+
+
+```{r}
 # filter out only people with complete data
 ```
 
 # TODO 2
 
-```{r}
-d
-```
-
 calculate length of time page_submit - first_click
 can use click.count as covariate
 can use length of time as covariate
+
+
+
+
+
+```{r}
+# filter out the treatment
+
+# filter out the control
+```
+
+
 
 # TODO 3
 
@@ -407,7 +501,7 @@ try.ip <- function(ip) {
   suppressWarnings(try(freegeoip(ip), silent = TRUE))
 }
 
-ips <- try.ip(d$IPAddress)
+ips <- try.ip(data$IPAddress)
 ```
 
 ### LatLong
@@ -425,7 +519,7 @@ revgeo(longitude=-73.961452, latitude=40.714224, output="frame", provider="googl
 
 This will always fail because of the limitation to the number of API calls:
 ```
-ll <- revgeo(longitude = d$LocationLongitude, latitude = d$LocationLatitude, output = "frame", provider = "google", API = "AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
+ll <- revgeo(longitude = data$LocationLongitude, latitude = data$LocationLatitude, output = "frame", provider = "google", API = "AIzaSyC8Q7FY6SzmEfpMTOcx2BTrnYaRkzX12Ik")
 ```
 
 Getting USA (or any other country)'s latlong
