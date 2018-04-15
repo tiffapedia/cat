@@ -241,7 +241,7 @@ cols <- c("Progress",
           )
 d[,cols] <- lapply(d[,cols], convert_fctr_to_numeric)
 # 3d. factor -> str
-cols <- c("IPAddress", "ResponseId", "UserLanguage")
+cols <- c("IPAddress", "ResponseId", "UserLanguage", "highest_education")
 d[,cols] <- lapply(d[,cols], convert_fctr_to_str)
 ```
 
@@ -295,7 +295,12 @@ d <- d %>% filter(., country == "United States")
 ```
 
 4. subjects who took the survey once
-  * see section where this filtering took place
+
+```{r}
+# filter out subjects who took the survey more than once
+subjects.repeater <- d %>% group_by(IPAddress) %>% summarize(freq = sum(n())) %>% filter(freq > 1)
+d <- d %>% filter(!(IPAddress %in% subjects.repeater$IPAddress))
+```
 
 5. 
 
@@ -387,10 +392,7 @@ Out of 638 subjects, 580 subjects are from the United States and 58 are from out
 ### Verify that subjects only took the survey once
 
 ```{r}
-(subjects.repeater <- d %>% 
-  group_by(IPAddress) %>% 
-  summarize(freq = sum(n())) %>%
-  filter(freq > 1))
+subjects.repeater
 ```
 
 All devices connected to the same router will share the same external IP address.
@@ -418,11 +420,6 @@ d %>% filter(IPAddress == "67.183.210.112")
 ```
 
 With the same reasoning as above, it is better not to use this dataset.
-
-```{r}
-# filter out subjects who took the survey more than once
-d <- d %>% filter(!(IPAddress %in% subjects.repeater$IPAddress))
-```
 
 ### Verify that subjects answer all the questions
 
@@ -473,33 +470,229 @@ nrow(treatment) == 295
 
 ### Explore the covariates
 
+For most covariates, it might be sufficient to just show the histogram:
+* gender
+* age
+*
+
+#### 1. Gender
+
+```{r}
+# gender frequency in the entire study
+(total.gender.freq <- d %>% 
+  group_by(gender) %>% 
+  summarize(freq = sum(n()))) 
+```
+
+```{r}
+# percentage of noncompliant for the entire study
+total.gender.freq[which(total.gender.freq == ""),]$freq / sum(total.gender.freq$freq) * 100
+# percentage of female for the entire study
+total.gender.freq[which(total.gender.freq == "Female"),]$freq / sum(total.gender.freq$freq) * 100
+# percentage of male for the entire study
+total.gender.freq[which(total.gender.freq == "Male"),]$freq / sum(total.gender.freq$freq) * 100
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the gender frequency in the entire study
+total.gender.bp <- barplot(total.gender.freq$freq, names.arg=total.gender.freq$gender, ylim=c(0,300))
+text(total.gender.bp, 0, round(total.gender.freq$freq, 1), cex=1, pos=3)
+```
+
+**TOTAL**
+no answer: 1 (0.1795332%)
+female: 282 (50.62837%)
+male: 274 (49.1921%)
+
+There is almost equal number of male and female in the entire study.
+
+```{r}
+# gender frequency in the control group
+(control.gender.freq <- control %>% 
+  group_by(gender) %>% 
+  summarize(freq = sum(n()))) 
+```
+
+```{r}
+# percentage of noncompliant in the control group
+control.gender.freq[which(control.gender.freq == ""),]$freq / sum(control.gender.freq$freq) * 100
+# percentage of female in the control group
+control.gender.freq[which(control.gender.freq == "Female"),]$freq / sum(control.gender.freq$freq) * 100
+# percentage of male in the control group
+control.gender.freq[which(control.gender.freq == "Male"),]$freq / sum(control.gender.freq$freq) * 100
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the gender frequency in the control group
+control.gender.bp <- barplot(control.gender.freq$freq, names.arg=control.gender.freq$gender, ylim=c(0,300))
+text(control.gender.bp, 0, round(control.gender.freq$freq, 1), cex=1, pos=3)
+```
+
+**CONTROL**
+no answer: 1 (0.3816794%)
+female: 127 (48.47328%)
+male: 134 (51.14504%)
+
+There is slightly more male than female in the control group.
+
+```{r}
+# gender frequency in the treatment group
+(treatment.gender.freq <- treatment %>% 
+  group_by(gender) %>% 
+  summarize(freq = sum(n()))) 
+```
+
+```{r}
+# percentage of female in the treatment group
+treatment.gender.freq[which(treatment.gender.freq == "Female"),]$freq / sum(treatment.gender.freq$freq) * 100
+# percentage of male in the treatment group
+treatment.gender.freq[which(treatment.gender.freq == "Male"),]$freq / sum(treatment.gender.freq$freq) * 100
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the gender frequency in the treatment group
+treatment.gender.bp <- barplot(treatment.gender.freq$freq, names.arg=treatment.gender.freq$gender, ylim=c(0,300))
+text(treatment.gender.bp, 0, round(treatment.gender.freq$freq, 1), cex=1, pos=3)
+```
+
+**TREATMENT**
+female: 155 (52.54237%)
+male: 140 (47.45763%)
+
+There is slightly more female than male in the treatment group.
+
+#### 2. Age
+
+```{r}
+# age frequency in the entire study
+total.age.freq <- d %>% 
+  group_by(age) %>% 
+  summarize(freq = sum(n()))
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the age frequency in the entire study
+total.age.bp <- barplot(total.age.freq$freq, names.arg=total.age.freq$age, ylim=c(0,250))
+text(total.age.bp, 0, round(total.age.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# age frequency in the control group
+control.age.freq <- control %>% 
+  group_by(age) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the age frequency in the control group
+control.age.bp <- barplot(control.age.freq$freq, names.arg=control.age.freq$age, ylim=c(0,250))
+text(control.age.bp, 0, round(control.age.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# age frequency in the treatment group
+treatment.age.freq <- treatment %>% 
+  group_by(age) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the age frequency in the treatment group
+treatment.age.bp <- barplot(treatment.age.freq$freq, names.arg=treatment.age.freq$age, ylim=c(0,250))
+text(treatment.age.bp, 0, round(treatment.age.freq$freq, 1), cex=1, pos=3)
+```
+
+Age has a positively skewed distribution with subjects mostly in the age range of 25-34. The age distribution in the treatment and control group are approximately similar to each other.
+
+#### 3. Highest education
+
+```{r}
+highest_education.order <- c("Less than high school", "High school graduate", "Some college", "2 year degree", "4 year degree", "Doctorate", "Professional degree")
+```
+
+```{r}
+# highest_education frequency in the entire study
+total.highest_education.freq <- d %>% 
+  group_by(highest_education) %>% 
+  summarize(freq = sum(n())) %>%
+  left_join(data.frame(highest_education=highest_education.order), .)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the highest_education frequency in the entire study
+par(mar=c(10,3,1,1))
+total.highest_education.bp <- barplot(total.highest_education.freq$freq, names.arg=total.highest_education.freq$highest_education, ylim=c(0,200), las=2)
+text(total.highest_education.bp, 0, round(total.highest_education.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# highest_education frequency in the control group
+control.highest_education.freq <- control %>% 
+  group_by(highest_education) %>% 
+  summarize(freq = sum(n())) %>%
+  left_join(data.frame(highest_education=highest_education.order), .)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the highest_education frequency in the control group
+par(mar=c(10,3,1,1))
+control.highest_education.bp <- barplot(control.highest_education.freq$freq, names.arg=control.highest_education.freq$highest_education, ylim=c(0,200), las=2)
+text(control.highest_education.bp, 0, round(control.highest_education.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# highest_education frequency in the treatment group
+treatment.highest_education.freq <- treatment %>% 
+  group_by(highest_education) %>% 
+  summarize(freq = sum(n())) %>%
+  left_join(data.frame(highest_education=highest_education.order), .)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the highest_education frequency in the treatment group
+par(mar=c(10,3,1,1))
+treatment.highest_education.bp <- barplot(treatment.highest_education.freq$freq, names.arg=treatment.highest_education.freq$highest_education, ylim=c(0,200), las=2)
+text(treatment.highest_education.bp, 0, round(treatment.highest_education.freq$freq, 1), cex=1, pos=3)
+```
+
+The majority of the survey takers have a 4 year degree, and the highest education level is approximately the same for treatment and control.
+
+#### 4. Employment status
+
+
+
+#### 5. Marital status
+
+#### 6. Zip code
+
+#### 7. Community
+
+#### 8. Can vote
+
+#### 9. Political party
+
+#### 10. Ethnicity
+
+#### 11. Income
+
+#### 12. Have kids
+
+#### 13. How often they access internet from their mobile phones
+
+#### 14. How often they access internet from home
+
+#### 15. How often they access internet from work
+
+#### 16. Who pays the internet
+
+#### 17. 
+
+
 _First.Click, _Last.Click, _Page.Submit, _Click.Count
 
 covariate:
 _Click.Count
 time = _Page.Submit - _First.Click
-
-gender: Male Female
-age: figure out?
-highest education: figure out?
-employment status
-marital status
-zip code
-community
-can_vote
-political party
-ethnicity
-income
-have_kids
-internet_from_mobile
-internet_from_home
-internet_from_work
-who_pays_internet
-
-```{r}
-
-```
-
 
 
 # TODO 2
