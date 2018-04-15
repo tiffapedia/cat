@@ -283,23 +283,21 @@ d: contains the dataset after we filtered out for the following:
 2. subjects who consented to take the survey
 
 ```{r}
-# filter out subjects who consented to take the survey
+# filter for subjects who consented to take the survey
 d <- d[which(d$consent == 1),]
 ```
 
 3. subjects who are from USA
 
 ```{r}
-# filter out subjects who are from USA
+# filter for subjects who are from USA
 d <- d %>% filter(., country == "United States")
 ```
 
 4. subjects who took the survey once
-  * if subjects took the survey more than once, we only look at their first time taking the survey
+  * see section where this filtering took place
 
-```{r}
-
-```
+5. 
 
 ### How many took the survey?
 
@@ -389,34 +387,42 @@ Out of 638 subjects, 580 subjects are from the United States and 58 are from out
 ### Verify that subjects only took the survey once
 
 ```{r}
-d %>% 
+(subjects.repeater <- d %>% 
   group_by(IPAddress) %>% 
   summarize(freq = sum(n())) %>%
-  filter(freq > 1)
+  filter(freq > 1))
 ```
+
+All devices connected to the same router will share the same external IP address.
 
 ```{r}
 d %>% filter(IPAddress == "170.185.202.19")
 ```
 
-1: control, female, 25-34, professional, married, suburban, republican, white, $50-59k, 0 kids, 
-   internet daily from mobile/home/work, pay for internet
-2: treatment, female, 25-34, professional, married, suburban, independent, white, $90-99k, 1 kid, 
-   internet daily from mobile/home/work, pay for internet
-   
+It might be that the two women who took the survey are roommates, but since we have no way to confirm, it is better not to use this dataset in the study.
+
 ```{r}
 d %>% filter(IPAddress == "24.46.117.154")
 ```
+
+It's simply not possible that different people with different zip codes to have the same IP address. The reliability of this data is questionable. It might be possible that friends come over to take the same survey, but since we have no way to confirm, it is better not to use this dataset in the study.
 
 ```{r}
 d %>% filter(IPAddress == "50.88.107.50")
 ```
 
+With the same reasoning as above, it is better not to use this dataset.
+
 ```{r}
 d %>% filter(IPAddress == "67.183.210.112")
 ```
 
-It might potentially be roommates, but this assumption cannot be validated. For this reason, we filter out the following people from the dataset.
+With the same reasoning as above, it is better not to use this dataset.
+
+```{r}
+# filter out subjects who took the survey more than once
+d <- d %>% filter(!(IPAddress %in% subjects.repeater$IPAddress))
+```
 
 ### Verify that subjects answer all the questions
 
@@ -424,31 +430,83 @@ It might potentially be roommates, but this assumption cannot be validated. For 
 # check if subjects in control answer all questions
 d %>%
   select(control_employment, control_education, control_retirement, control_cybersecurity) %>%
-  summarise_all(funs(sum(is.na(.))))
+  summarise_all(funs(sum(!is.na(.))))
 ```
+
+Yes, subjects in control answer all the questions. There are 262 subjects in control.
 
 ```{r}
 # check if subjects in treatment answer all questions
 d %>%
   select(treatment_employment, treatment_education, treatment_retirement, treatment_cybersecurity) %>%
-  summarise_all(funs(sum(is.na(.))))
+  summarise_all(funs(sum(!is.na(.))))
 ```
+
+Yes, subjects in treatment answer all the questions. There are 295 subjects in treatment.
+
+### Separate between treatment and control
+
+```{r}
+# filter for subjects in control
+control <- d %>% filter(!is.na(control_employment) & 
+                        !is.na(control_education) & 
+                        !is.na(control_retirement) & 
+                        !is.na(control_cybersecurity))
+```
+
+```{r}
+# verify that control has 262 subjects
+nrow(control) == 262
+```
+
+```{r}
+# filter for subjects in treatment
+treatment <- d %>% filter(!is.na(treatment_employment) & 
+                          !is.na(treatment_education) & 
+                          !is.na(treatment_retirement) & 
+                          !is.na(treatment_cybersecurity))
+```
+```{r}
+# verify that treatment has 295 subjects
+nrow(treatment) == 295
+```
+
+### Explore the covariates
+
+_First.Click, _Last.Click, _Page.Submit, _Click.Count
+
+covariate:
+_Click.Count
+time = _Page.Submit - _First.Click
+
+gender: Male Female
+age: figure out?
+highest education: figure out?
+employment status
+marital status
+zip code
+community
+can_vote
+political party
+ethnicity
+income
+have_kids
+internet_from_mobile
+internet_from_home
+internet_from_work
+who_pays_internet
+
+```{r}
+
+```
+
+
 
 # TODO 2
 
 calculate length of time page_submit - first_click
 can use click.count as covariate
 can use length of time as covariate
-
-
-
-
-
-```{r}
-# filter out the treatment
-
-# filter out the control
-```
 
 
 
