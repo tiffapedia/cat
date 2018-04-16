@@ -302,8 +302,6 @@ subjects.repeater <- d %>% group_by(IPAddress) %>% summarize(freq = sum(n())) %>
 d <- d %>% filter(!(IPAddress %in% subjects.repeater$IPAddress))
 ```
 
-5. 
-
 ### How many took the survey?
 
 ```{r}
@@ -470,10 +468,78 @@ nrow(treatment) == 295
 
 ### Explore the covariates
 
-For most covariates, it might be sufficient to just show the histogram:
-* gender
-* age
-*
+1. Gender: 
+   There is slightly more male than female in the control group.
+   There is slightly more female than male in the control group.
+   Overall, they're equally distributed.
+
+2. Age: 
+   Age has a positively skewed distribution with subjects mostly in the age range of 25-34. 
+   The distribution is approximately equal in treatment and control.
+  
+3. Highest education:
+   The majority of the survey takers have a 4 year degree. 
+   The distribution is approximately equal in treatment and control. 
+
+4. Employment status:
+   The majority of the subjects are employed full time. 
+   The distribution is approximately equal in treatment and control.
+
+5. Marital status:
+   The majority of the participants are married, followed by them being never married. 
+   The distribution is approximately equal in treatment and control. 
+
+6. Zip code:
+
+
+7. Community:
+   Subjects are twice more likely to live in suburban than in rural or urban communities. 
+   The distribution is approximately equal in treatment and control. 
+
+8. Can vote: 
+   Approximately 12% of the subjects cannot vote. 
+   There are more subjects who cannot vote in the treatment group than in the control group, 
+   but the majority of the people can vote. 
+
+9. Political party:
+   There are in general more Democrats taking the survey 
+   followed by Independents then Republicans last.
+
+10. Ethnicity: 
+    The majority of the subjects are white. 
+    The distribution is approximately equal in treatment and control.
+
+11. Income: 
+    The majority of the subjects make income around $20,000 - $49,999 range. 
+    The distribution is positively skewed. 
+    Treatment seems to have a slightly higher income overall but not by much.
+
+12. Have kids:
+    There are slightly more subjects having kids than no kids but not by much.
+
+13. Internet access via mobile phone: 
+    The majority of the subjects access their phone daily.
+
+14. Internet access from home:
+    The majority of the subjects access their internet daily from their home.
+
+15. Internet access from work: 
+    The majority of the subjects access their internet daily from their work.
+    
+16. Who pays for the internet:
+    The majority of the subjects pay internet by themselves. 
+
+17. Click counts: 
+    There are slightly more clicks in treatment than in control.
+    Both follow the same distribution, which is high click counts, on average, for the first question 
+    then decreasing the number of click counts until the third question 
+    before rising up on the fourth question. 
+    
+18. Duration in the question:
+    On average, it takes the treatment group much longer to complete the question than the control group.
+    WARNING: It is a little concerning that about half of the subjects in both treatment and control
+    answer the question on average less than 30 seconds.
+
 
 #### 1. Gender
 
@@ -602,7 +668,7 @@ treatment.age.bp <- barplot(treatment.age.freq$freq, names.arg=treatment.age.fre
 text(treatment.age.bp, 0, round(treatment.age.freq$freq, 1), cex=1, pos=3)
 ```
 
-Age has a positively skewed distribution with subjects mostly in the age range of 25-34. The age distribution in the treatment and control group are approximately similar to each other.
+Age has a positively skewed distribution with subjects mostly in the age range of 25-34. The distribution is approximately equal in treatment and control.
 
 #### 3. Highest education
 
@@ -655,61 +721,789 @@ treatment.highest_education.bp <- barplot(treatment.highest_education.freq$freq,
 text(treatment.highest_education.bp, 0, round(treatment.highest_education.freq$freq, 1), cex=1, pos=3)
 ```
 
-The majority of the survey takers have a 4 year degree, and the highest education level is approximately the same for treatment and control.
+The majority of the survey takers have a 4 year degree. The distribution is approximately equal in treatment and control. 
 
 #### 4. Employment status
 
+```{r}
+# employment_status frequency in the entire study
+total.employment_status.freq <- d %>% 
+  group_by(employment_status) %>% 
+  summarize(freq = sum(n()))
+```
 
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the employment_status frequency in the entire study
+par(mar=c(16,3,1,1))
+total.employment_status.bp <- barplot(total.employment_status.freq$freq, names.arg=total.employment_status.freq$employment_status, ylim=c(0,400), las=2)
+text(total.employment_status.bp, 0, round(total.employment_status.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# employment_status frequency in the control group
+control.employment_status.freq <- control %>% 
+  group_by(employment_status) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the employment_status frequency in the control group
+par(mar=c(16,3,1,1))
+control.employment_status.bp <- barplot(control.employment_status.freq$freq, names.arg=control.employment_status.freq$employment_status, ylim=c(0,200), las=2)
+text(control.employment_status.bp, 0, round(control.employment_status.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# employment_status frequency in the treatment group
+treatment.employment_status.freq <- treatment %>% 
+  group_by(employment_status) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the employment_status frequency in the treatment group
+par(mar=c(16,3,1,1))
+treatment.employment_status.bp <- barplot(treatment.employment_status.freq$freq, names.arg=treatment.employment_status.freq$employment_status, ylim=c(0,200), las=2)
+text(treatment.employment_status.bp, 0, round(treatment.employment_status.freq$freq, 1), cex=1, pos=3)
+```
+
+The majority of the subjects are employed full time. The distribution is approximately equal in treatment and control. 
 
 #### 5. Marital status
 
+```{r}
+# marital_status frequency in the entire study
+total.marital_status.freq <- d %>% 
+  group_by(marital_status) %>% 
+  summarize(freq = sum(n()))
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the marital_status frequency in the entire study
+par(mar=c(7,3,1,1))
+total.marital_status.bp <- barplot(total.marital_status.freq$freq, names.arg=total.marital_status.freq$marital_status, ylim=c(0,400), las=2)
+text(total.marital_status.bp, 0, round(total.marital_status.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# marital_status frequency in the control group
+control.marital_status.freq <- control %>% 
+  group_by(marital_status) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the marital_status frequency in the control group
+par(mar=c(7,3,1,1))
+control.marital_status.bp <- barplot(control.marital_status.freq$freq, names.arg=control.marital_status.freq$marital_status, ylim=c(0,200), las=2)
+text(control.marital_status.bp, 0, round(control.marital_status.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# marital_status frequency in the treatment group
+treatment.marital_status.freq <- treatment %>% 
+  group_by(marital_status) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the marital_status frequency in the treatment group
+par(mar=c(7,3,1,1))
+treatment.marital_status.bp <- barplot(treatment.marital_status.freq$freq, names.arg=treatment.marital_status.freq$marital_status, ylim=c(0,200), las=2)
+text(treatment.marital_status.bp, 0, round(treatment.marital_status.freq$freq, 1), cex=1, pos=3)
+```
+
+The majority of the participants are married, followed by them being never married. The distribution is approximately equal in treatment and control. 
+
 #### 6. Zip code
+
+TODO
 
 #### 7. Community
 
+```{r}
+# community frequency in the entire study
+total.community.freq <- d %>% 
+  group_by(community) %>% 
+  summarize(freq = sum(n()))
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the community frequency in the entire study
+par(mar=c(7,3,1,1))
+total.community.bp <- barplot(total.community.freq$freq, names.arg=total.community.freq$community, ylim=c(0,400), las=2)
+text(total.community.bp, 0, round(total.community.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# community frequency in the control group
+control.community.freq <- control %>% 
+  group_by(community) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the community frequency in the control group
+par(mar=c(7,3,1,1))
+control.community.bp <- barplot(control.community.freq$freq, names.arg=control.community.freq$community, ylim=c(0,200), las=2)
+text(control.community.bp, 0, round(control.community.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# community frequency in the treatment group
+treatment.community.freq <- treatment %>% 
+  group_by(community) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the community frequency in the treatment group
+par(mar=c(7,3,1,1))
+treatment.community.bp <- barplot(treatment.community.freq$freq, names.arg=treatment.community.freq$community, ylim=c(0,200), las=2)
+text(treatment.community.bp, 0, round(treatment.community.freq$freq, 1), cex=1, pos=3)
+```
+
+Subjects are twice more likely to live in suburban than in rural or urban communities. The distribution is approximately equal in treatment and control. 
+
 #### 8. Can vote
+
+```{r}
+# can_vote frequency in the entire study
+total.can_vote.freq <- d %>% 
+  group_by(can_vote) %>% 
+  summarize(freq = sum(n()))
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the can_vote frequency in the entire study
+par(mar=c(7,3,1,1))
+total.can_vote.bp <- barplot(total.can_vote.freq$freq, names.arg=total.can_vote.freq$can_vote, ylim=c(0,400), las=2)
+text(total.can_vote.bp, 0, round(total.can_vote.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# can_vote frequency in the control group
+control.can_vote.freq <- control %>% 
+  group_by(can_vote) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the can_vote frequency in the control group
+par(mar=c(7,3,1,1))
+control.can_vote.bp <- barplot(control.can_vote.freq$freq, names.arg=control.can_vote.freq$can_vote, ylim=c(0,200), las=2)
+text(control.can_vote.bp, 0, round(control.can_vote.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# can_vote frequency in the treatment group
+treatment.can_vote.freq <- treatment %>% 
+  group_by(can_vote) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the can_vote frequency in the treatment group
+par(mar=c(7,3,1,1))
+treatment.can_vote.bp <- barplot(treatment.can_vote.freq$freq, names.arg=treatment.can_vote.freq$can_vote, ylim=c(0,200), las=2)
+text(treatment.can_vote.bp, 0, round(treatment.can_vote.freq$freq, 1), cex=1, pos=3)
+```
+
+Approximately 12% of the subjects cannot vote. There are more subjects who cannot vote in the treatment group than in the control group, but the majority of the people can vote. 
 
 #### 9. Political party
 
+```{r}
+# political_party frequency in the entire study
+total.political_party.freq <- d %>% 
+  group_by(political_party) %>% 
+  summarize(freq = sum(n()))
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the political_party frequency in the entire study
+par(mar=c(10,3,1,1))
+total.political_party.bp <- barplot(total.political_party.freq$freq, names.arg=total.political_party.freq$political_party, ylim=c(0,300), las=2)
+text(total.political_party.bp, 0, round(total.political_party.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# political_party frequency in the control group
+control.political_party.freq <- control %>% 
+  group_by(political_party) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the political_party frequency in the control group
+par(mar=c(10,3,1,1))
+control.political_party.bp <- barplot(control.political_party.freq$freq, names.arg=control.political_party.freq$political_party, ylim=c(0,150), las=2)
+text(control.political_party.bp, 0, round(control.political_party.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# political_party frequency in the treatment group
+treatment.political_party.freq <- treatment %>% 
+  group_by(political_party) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the political_party frequency in the treatment group
+par(mar=c(10,3,1,1))
+treatment.political_party.bp <- barplot(treatment.political_party.freq$freq, names.arg=treatment.political_party.freq$political_party, ylim=c(0,150), las=2)
+text(treatment.political_party.bp, 0, round(treatment.political_party.freq$freq, 1), cex=1, pos=3)
+```
+
+There are in general more Democrats taking the survey followed by Independents then Republicans last.
+
 #### 10. Ethnicity
 
+```{r}
+# ethnicity frequency in the entire study
+total.ethnicity.freq <- d %>% 
+  group_by(ethnicity) %>% 
+  summarize(freq = sum(n()))
+```
+
+```{r}
+total.ethnicity.freq
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the ethnicity frequency in the entire study
+par(mar=c(8,3,1,1))
+total.ethnicity.bp <- barplot(total.ethnicity.freq$freq, names.arg=total.ethnicity.freq$ethnicity, ylim=c(0,600), las=2)
+text(total.ethnicity.bp, 0, round(total.ethnicity.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# ethnicity frequency in the control group
+control.ethnicity.freq <- control %>% 
+  group_by(ethnicity) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the ethnicity frequency in the control group
+par(mar=c(8,3,1,1))
+control.ethnicity.bp <- barplot(control.ethnicity.freq$freq, names.arg=control.ethnicity.freq$ethnicity, ylim=c(0,250), las=2)
+text(control.ethnicity.bp, 0, round(control.ethnicity.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# ethnicity frequency in the treatment group
+treatment.ethnicity.freq <- treatment %>% 
+  group_by(ethnicity) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the ethnicity frequency in the treatment group
+par(mar=c(8,3,1,1))
+treatment.ethnicity.bp <- barplot(treatment.ethnicity.freq$freq, names.arg=treatment.ethnicity.freq$ethnicity, ylim=c(0,250), las=2)
+text(treatment.ethnicity.bp, 0, round(treatment.ethnicity.freq$freq, 1), cex=1, pos=3)
+```
+
+The majority of the subjects are white. The distribution is approximately equal in treatment and control. 
 #### 11. Income
+
+```{r}
+income.order <- c("Less than $10,000", "$10,000 - $19,999", "$20,000 - $29,999", "$30,000 - $39,999",
+                  "$40,000 - $49,999", "$50,000 - $59,999", "$60,000 - $69,999", "$70,000 - $79,999",
+                  "$80,000 - $89,999", "$90,000 - $99,999", "$100,000 - $149,999", "More than $150,000",
+                  "Rather not say")
+```
+
+```{r}
+# income frequency in the entire study
+total.income.freq <- d %>% 
+  group_by(income) %>% 
+  summarize(freq = sum(n())) %>%
+  left_join(data.frame(income=income.order), .)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the income frequency in the entire study
+par(mar=c(10,3,1,1))
+total.income.bp <- barplot(total.income.freq$freq, names.arg=total.income.freq$income, ylim=c(0,100), las=2)
+text(total.income.bp, 0, round(total.income.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# income frequency in the control group
+control.income.freq <- control %>% 
+  group_by(income) %>% 
+  summarize(freq = sum(n())) %>%
+  left_join(data.frame(income=income.order), .)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the income frequency in the control group
+par(mar=c(10,3,1,1))
+control.income.bp <- barplot(control.income.freq$freq, names.arg=control.income.freq$income, ylim=c(0,50), las=2)
+text(control.income.bp, 0, round(control.income.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# income frequency in the treatment group
+treatment.income.freq <- treatment %>% 
+  group_by(income) %>% 
+  summarize(freq = sum(n())) %>%
+  left_join(data.frame(income=income.order), .)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the income frequency in the treatment group
+par(mar=c(10,3,1,1))
+treatment.income.bp <- barplot(treatment.income.freq$freq, names.arg=treatment.income.freq$income, ylim=c(0,50), las=2)
+text(treatment.income.bp, 0, round(treatment.income.freq$freq, 1), cex=1, pos=3)
+```
+
+The majority of the subjects make income around $20,000 - $49,999 range. Treatment seems to have a slightly higher income overall but not by much.
 
 #### 12. Have kids
 
+```{r}
+# have_kids frequency in the entire study
+total.have_kids.freq <- d %>% 
+  group_by(have_kids) %>% 
+  summarize(freq = sum(n()))
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the have_kids frequency in the entire study
+par(mar=c(8,3,1,1))
+total.have_kids.bp <- barplot(total.have_kids.freq$freq, names.arg=total.have_kids.freq$have_kids, ylim=c(0,600), las=2)
+text(total.have_kids.bp, 0, round(total.have_kids.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# have_kids frequency in the control group
+control.have_kids.freq <- control %>% 
+  group_by(have_kids) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the have_kids frequency in the control group
+par(mar=c(8,3,1,1))
+control.have_kids.bp <- barplot(control.have_kids.freq$freq, names.arg=control.have_kids.freq$have_kids, ylim=c(0,250), las=2)
+text(control.have_kids.bp, 0, round(control.have_kids.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# have_kids frequency in the treatment group
+treatment.have_kids.freq <- treatment %>% 
+  group_by(have_kids) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the have_kids frequency in the treatment group
+par(mar=c(8,3,1,1))
+treatment.have_kids.bp <- barplot(treatment.have_kids.freq$freq, names.arg=treatment.have_kids.freq$have_kids, ylim=c(0,250), las=2)
+text(treatment.have_kids.bp, 0, round(treatment.have_kids.freq$freq, 1), cex=1, pos=3)
+```
+
+There are slightly more subjects having kids than no kids but not by much.
+
 #### 13. How often they access internet from their mobile phones
+
+```{r}
+internet_from_mobile.order <- c("I do not have a mobile phone", "Never", "Less than once a month", "Monthly", "Weekly", "Daily")
+```
+
+```{r}
+# internet_from_mobile frequency in the entire study
+total.internet_from_mobile.freq <- d %>% 
+  group_by(internet_from_mobile) %>% 
+  summarize(freq = sum(n())) %>%
+  left_join(data.frame(internet_from_mobile=internet_from_mobile.order), .)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the internet_from_mobile frequency in the entire study
+par(mar=c(10,3,1,1))
+total.internet_from_mobile.bp <- barplot(total.internet_from_mobile.freq$freq, names.arg=total.internet_from_mobile.freq$internet_from_mobile, ylim=c(0, 600), las=2)
+text(total.internet_from_mobile.bp, 0, round(total.internet_from_mobile.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# internet_from_mobile frequency in the control group
+control.internet_from_mobile.freq <- control %>% 
+  group_by(internet_from_mobile) %>% 
+  summarize(freq = sum(n())) %>%
+  left_join(data.frame(internet_from_mobile=internet_from_mobile.order), .)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the internet_from_mobile frequency in the control group
+par(mar=c(10,3,1,1))
+control.internet_from_mobile.bp <- barplot(control.internet_from_mobile.freq$freq, names.arg=control.internet_from_mobile.freq$internet_from_mobile, ylim=c(0,250), las=2)
+text(control.internet_from_mobile.bp, 0, round(control.internet_from_mobile.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# internet_from_mobile frequency in the treatment group
+treatment.internet_from_mobile.freq <- treatment %>% 
+  group_by(internet_from_mobile) %>% 
+  summarize(freq = sum(n())) %>%
+  left_join(data.frame(internet_from_mobile=internet_from_mobile.order), .)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the internet_from_mobile frequency in the treatment group
+par(mar=c(10,3,1,1))
+treatment.internet_from_mobile.bp <- barplot(treatment.internet_from_mobile.freq$freq, names.arg=treatment.internet_from_mobile.freq$internet_from_mobile, ylim=c(0,250), las=2)
+text(treatment.internet_from_mobile.bp, 0, round(treatment.internet_from_mobile.freq$freq, 1), cex=1, pos=3)
+```
+
+The majority of the subjects access their phone daily.
 
 #### 14. How often they access internet from home
 
+```{r}
+internet_from_home.order <- c("I do not have internet at my house", "Never", "Less than once a month", "Monthly", "Weekly", "Daily")
+```
+
+```{r}
+# internet_from_home frequency in the entire study
+total.internet_from_home.freq <- d %>% 
+  group_by(internet_from_home) %>% 
+  summarize(freq = sum(n())) %>%
+  left_join(data.frame(internet_from_home=internet_from_home.order), .)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the internet_from_home frequency in the entire study
+par(mar=c(10,3,1,1))
+total.internet_from_home.bp <- barplot(total.internet_from_home.freq$freq, names.arg=total.internet_from_home.freq$internet_from_home, ylim=c(0, 600), las=2)
+text(total.internet_from_home.bp, 0, round(total.internet_from_home.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# internet_from_home frequency in the control group
+control.internet_from_home.freq <- control %>% 
+  group_by(internet_from_home) %>% 
+  summarize(freq = sum(n())) %>%
+  left_join(data.frame(internet_from_home=internet_from_home.order), .)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the internet_from_home frequency in the control group
+par(mar=c(10,3,1,1))
+control.internet_from_home.bp <- barplot(control.internet_from_home.freq$freq, names.arg=control.internet_from_home.freq$internet_from_home, ylim=c(0,300), las=2)
+text(control.internet_from_home.bp, 0, round(control.internet_from_home.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# internet_from_home frequency in the treatment group
+treatment.internet_from_home.freq <- treatment %>% 
+  group_by(internet_from_home) %>% 
+  summarize(freq = sum(n())) %>%
+  left_join(data.frame(internet_from_home=internet_from_home.order), .)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the internet_from_home frequency in the treatment group
+par(mar=c(10,3,1,1))
+treatment.internet_from_home.bp <- barplot(treatment.internet_from_home.freq$freq, names.arg=treatment.internet_from_home.freq$internet_from_home, ylim=c(0,300), las=2)
+text(treatment.internet_from_home.bp, 0, round(treatment.internet_from_home.freq$freq, 1), cex=1, pos=3)
+```
+
+The majority of the subjects access their internet daily from their home.
+
 #### 15. How often they access internet from work
+
+```{r}
+internet_from_work.order <- c("I am currently not working", "Never", "Less than once a month", "Monthly", "Weekly", "Daily")
+```
+
+```{r}
+# internet_from_work frequency in the entire study
+total.internet_from_work.freq <- d %>% 
+  group_by(internet_from_work) %>% 
+  summarize(freq = sum(n())) %>%
+  left_join(data.frame(internet_from_work=internet_from_work.order), .)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the internet_from_work frequency in the entire study
+par(mar=c(10,3,1,1))
+total.internet_from_work.bp <- barplot(total.internet_from_work.freq$freq, names.arg=total.internet_from_work.freq$internet_from_work, ylim=c(0, 500), las=2)
+text(total.internet_from_work.bp, 0, round(total.internet_from_work.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# internet_from_work frequency in the control group
+control.internet_from_work.freq <- control %>% 
+  group_by(internet_from_work) %>% 
+  summarize(freq = sum(n())) %>%
+  left_join(data.frame(internet_from_work=internet_from_work.order), .)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the internet_from_work frequency in the control group
+par(mar=c(10,3,1,1))
+control.internet_from_work.bp <- barplot(control.internet_from_work.freq$freq, names.arg=control.internet_from_work.freq$internet_from_work, ylim=c(0,250), las=2)
+text(control.internet_from_work.bp, 0, round(control.internet_from_work.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# internet_from_work frequency in the treatment group
+treatment.internet_from_work.freq <- treatment %>% 
+  group_by(internet_from_work) %>% 
+  summarize(freq = sum(n())) %>%
+  left_join(data.frame(internet_from_work=internet_from_work.order), .)
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the internet_from_work frequency in the treatment group
+par(mar=c(10,3,1,1))
+treatment.internet_from_work.bp <- barplot(treatment.internet_from_work.freq$freq, names.arg=treatment.internet_from_work.freq$internet_from_work, ylim=c(0,250), las=2)
+text(treatment.internet_from_work.bp, 0, round(treatment.internet_from_work.freq$freq, 1), cex=1, pos=3)
+```
+
+The majority of the subjects access their internet daily from their work.
 
 #### 16. Who pays the internet
 
-#### 17. 
+```{r}
+# who_pays_internet frequency in the entire study
+total.who_pays_internet.freq <- d %>% 
+  group_by(who_pays_internet) %>% 
+  summarize(freq = sum(n()))
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the who_pays_internet frequency in the entire study
+par(mar=c(8,3,1,1))
+total.who_pays_internet.bp <- barplot(total.who_pays_internet.freq$freq, names.arg=total.who_pays_internet.freq$who_pays_internet, ylim=c(0,600), las=2)
+text(total.who_pays_internet.bp, 0, round(total.who_pays_internet.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# who_pays_internet frequency in the control group
+control.who_pays_internet.freq <- control %>% 
+  group_by(who_pays_internet) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the who_pays_internet frequency in the control group
+par(mar=c(8,3,1,1))
+control.who_pays_internet.bp <- barplot(control.who_pays_internet.freq$freq, names.arg=control.who_pays_internet.freq$who_pays_internet, ylim=c(0,250), las=2)
+text(control.who_pays_internet.bp, 0, round(control.who_pays_internet.freq$freq, 1), cex=1, pos=3)
+```
+
+```{r}
+# who_pays_internet frequency in the treatment group
+treatment.who_pays_internet.freq <- treatment %>% 
+  group_by(who_pays_internet) %>% 
+  summarize(freq = sum(n())) 
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot the who_pays_internet frequency in the treatment group
+par(mar=c(8,3,1,1))
+treatment.who_pays_internet.bp <- barplot(treatment.who_pays_internet.freq$freq, names.arg=treatment.who_pays_internet.freq$who_pays_internet, ylim=c(0,250), las=2)
+text(treatment.who_pays_internet.bp, 0, round(treatment.who_pays_internet.freq$freq, 1), cex=1, pos=3)
+```
+
+The majority of the subjects pay internet by themselves. 
+
+#### 17. Click counts
+
+```{r}
+# summary of click count per control question
+summary(control$control_employment_Click.Count)
+summary(control$control_education_Click.Count)
+summary(control$control_retirement_Click.Count)
+summary(control$control_cybersecurity_Click.Count)
+```
+
+```{r}
+# summary of click count per treatment question
+summary(treatment$treatment_employment_Click.Count)
+summary(treatment$treatment_education_Click.Count)
+summary(treatment$treatment_retirement_Click.Count)
+summary(treatment$treatment_cybersecurity_Click.Count)
+```
 
 
-_First.Click, _Last.Click, _Page.Submit, _Click.Count
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+boxplot(control$control_employment_Click.Count,
+  control$control_education_Click.Count,
+  control$control_retirement_Click.Count,
+  control$control_cybersecurity_Click.Count, 
+  main="control's click count",
+  names=c("employment", "education\n(baseline)", "retirement", "cybersecurity"))
 
-covariate:
-_Click.Count
+boxplot(treatment$treatment_employment_Click.Count,
+  treatment$treatment_education_Click.Count,
+  treatment$treatment_retirement_Click.Count,
+  treatment$treatment_cybersecurity_Click.Count, 
+  main="treatment's click count",
+  names=c("employment", "education\n(baseline)", "retirement", "cybersecurity"))
+```
+
+There are slightly more clicks in treatment than in control, but both follow the same distribution, which is high click counts, on average, for the first question then decreasing the number of click counts until the third question before rising up on the fourth question. 
+
+#### 18. Length of time spent on each question
+
+Since we supress the next button for 30 seconds, we should see that each subject spends on each question 30 seconds or longer. 
+
+use _Page.Submit instead of _Last.Click
 time = _Page.Submit - _First.Click
 
+```{r}
+# determine how long each subject takes to answer the question (in seconds)
+control$control_employment_Duration.in.sec <- 
+  control$control_employment_Page.Submit - control$control_employment_First.Click
+control$control_education_Duration.in.sec <-
+  control$control_education_Page.Submit - control$control_education_First.Click
+control$control_retirement_Duration.in.sec <- 
+  control$control_retirement_Page.Submit - control$control_retirement_First.Click
+control$control_cybersecurity_Duration.in.sec <- 
+  control$control_cybersecurity_Page.Submit - control$control_cybersecurity_First.Click
 
-# TODO 2
+treatment$treatment_employment_Duration.in.sec <- 
+  treatment$treatment_employment_Page.Submit - treatment$treatment_employment_First.Click
+treatment$treatment_education_Duration.in.sec <-
+  treatment$treatment_education_Page.Submit - treatment$treatment_education_First.Click
+treatment$treatment_retirement_Duration.in.sec <- 
+  treatment$treatment_retirement_Page.Submit - treatment$treatment_retirement_First.Click
+treatment$treatment_cybersecurity_Duration.in.sec <- 
+  treatment$treatment_cybersecurity_Page.Submit - treatment$treatment_cybersecurity_First.Click
+```
 
-calculate length of time page_submit - first_click
-can use click.count as covariate
-can use length of time as covariate
+```{r}
+# summary of duration per control question
+summary(control$control_employment_Duration.in.sec)
+summary(control$control_education_Duration.in.sec)
+summary(control$control_retirement_Duration.in.sec)
+summary(control$control_cybersecurity_Duration.in.sec)
+```
 
+```{r}
+# summary of duration per treatment question
+summary(treatment$treatment_employment_Duration.in.sec)
+summary(treatment$treatment_education_Duration.in.sec)
+summary(treatment$treatment_retirement_Duration.in.sec)
+summary(treatment$treatment_cybersecurity_Duration.in.sec)
+```
 
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+boxplot(control$control_employment_Duration.in.sec,
+  control$control_education_Duration.in.sec,
+  control$control_retirement_Duration.in.sec,
+  control$control_cybersecurity_Duration.in.sec, 
+  main="control's duration (sec) in each question",
+  names=c("employment", "education\n(baseline)", "retirement", "cybersecurity"))
 
-# TODO 3
+boxplot(treatment$treatment_employment_Duration.in.sec,
+  treatment$treatment_education_Duration.in.sec,
+  treatment$treatment_retirement_Duration.in.sec,
+  treatment$treatment_cybersecurity_Duration.in.sec, 
+  main="treatment's duration (sec) in each question",
+  names=c("employment", "education\n(baseline)", "retirement", "cybersecurity"))
+```
 
-1) a pre-analysis/EDA, just looking at some plots of scores for each answer, with a few cuts by covariates (e.g. histograms by political preference, gender; box-whisker plots for age groups, etc.)
+On average, it takes the treatment group much longer to complete the question than the control group.
 
-# TODO 4
+```{r}
+# number of subjects in control who took each question less than 30 seconds
+nrow(control[which(control$control_employment_Duration.in.sec < 30),])
+nrow(control[which(control$control_education_Duration.in.sec < 30),])
+nrow(control[which(control$control_retirement_Duration.in.sec < 30),])
+nrow(control[which(control$control_cybersecurity_Duration.in.sec < 30),])
+```
+
+```{r}
+# number of subjects in control
+nrow(control)
+```
+
+```{r}
+# number of subjects in treatment who toko each question less than 30 seconds
+nrow(treatment[which(treatment$treatment_employment_Duration.in.sec < 30),])
+nrow(treatment[which(treatment$treatment_education_Duration.in.sec < 30),])
+nrow(treatment[which(treatment$treatment_retirement_Duration.in.sec < 30),])
+nrow(treatment[which(treatment$treatment_cybersecurity_Duration.in.sec < 30),])
+```
+
+```{r}
+# number of subjects in treatment
+nrow(treatment)
+```
+
+### Cross Section of Covariates
+
+**TODO**
+
+a pre-analysis/EDA, just looking at some plots of scores for each answer, with a few cuts by covariates (e.g. histograms by political preference, gender; box-whisker plots for age groups, etc.)
+
+1. age x gender
+
+2. Employment: age x employment, gender x employment, ethnicity x employment, educ x employment
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# cross section of education vs employment
+educXemp <- d %>% 
+  group_by(highest_education, employment_status) %>% 
+  summarize(freq = sum(n()))
+
+```
+
+3. Income: ... x income: should see similar result as ... x employment
+
+4. Community: married x community, have_kids x community
+
+5. Party: age x party, gender x party, ethnicity x party, educ x party, income x party, community x party
+   can_vote x party
+6. 
+
+### Analysis of each research question
 
 2) then, for each question, starting with our education placebo test, we have a _stargazer_ output that has 3 regressions: a) with only the treatment dummy, b) with treatment plus key covariates, and c) with treatment, key covariates AND interaction terms (i.e. HTEs)
+
+* Important covariate always included: political_party, can_vote
+
+* Key covarites for each question:
+
+  * employment: income, employment_status
+
+  * (baseline) education: income, highest_education
+
+  * retirement: income, age
+
+  * cybersecurity: internet_from_mobile, internet_from_home, internet_from_work, who_pays_internet
+
+* other covariates: gender, age, ethnicity, marital_status, have_kids, zip_code, click_counts, duration
+
+all covariates: gender, age, highest_education, employment_status, marital_status, zip_code, community, can_vote, political_party, ethnicity, income, have_kids, internet_from_mobile, internet_from_home, internet_from_work, who_pays_internet, click_counts, duration
+
+#### (Baseline) Education
+
+Education is the second question we asked in both treatment and control. It acts as our baseline because it does not include the name of our president. 
+
+```{r}
+# control
+```
+
+```{r}
+# treatment
+```
+
+
+
+
+#### Employment
+
+#### Retirement
+
+#### Cybersecurity
 
 
 ## References
