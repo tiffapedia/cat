@@ -1663,6 +1663,20 @@ The middle class in general are more concerned about their cybersecurity threat 
 
 TODO: figure out why political party is not showing up in the output...potentially correlated?
 
+## Questions to answer
+
+1. In 30 seconds: What is your research question? Why is an experiment necessary?
+2. In 30 seconds: What is the specific hypothesis that you are testing that is implied by theory of your question? What direction do you expect your outcomes to moe as a consequence of treatment?
+3. In 60 seconds: What is your treatment? Be specific. Show pictures of it, show the language that you used, etc. For me or the class to understand what you did, we need to understand what you did.
+4. In 30 seconds: explain who/what your measurement units are. People? From where? Robots? What type?
+5. In 30 seconds: How did you randomize and did it work?
+6. Present a flow document like in Box 13.3
+7. In 60 seconds: Draw out using the ROXO grammar your experiment design, describe the comparisons that you are going to make that tell you something causal. Call this RDD or a D-n-D, or a within subjects or a between subjects comparison.
+8. In 60 seconds: Describe your outcome measures. What are they? How are they related to the concept that motivated this experiment? What are they distributed like?
+9. In 180 seconds: Describe your analysis, results.
+10. In 30 seconds: List the questions and concerns that you want your peers to help you puzzle through.
+11. Share slides with class at least 24 hours before the presentation.
+
 ## References
 
 1. renaming column names: http://rprogramming.net/rename-columns-in-r/ 
