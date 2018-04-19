@@ -8,6 +8,11 @@ output:
   word_document: default
 ---
 
+# Introduction
+
+Media has often portrayed the American public as...
+has found that voters’ pessimism about Trump’s presidency has outstripped optimism since last May
+
 ## Load the libraries
 
 ```{r, include=FALSE, results='hide'}
@@ -378,6 +383,26 @@ Out of 638 subjects, 580 subjects are from the United States and 58 are from out
 ```{r}
 data %>% group_by(country) %>% summarize(countries = unique(country), freq=sum(n()))
 ```
+
+```{r}
+library(maps)
+library(ggplot2)
+world_map <- map_data("world")
+gg <- ggplot(world_map)
+gg <- gg + geom_map(dat = world_map, 
+                    map = world_map, 
+                    aes(map_id = region),
+                    fill = "white",
+                    color = "gray70")
+geomap1 <- unique(data, by=c("LocationLatitude", "LocationLongitude"))
+gg <- gg + geom_point(data = geomap1,
+                      aes(LocationLongitude, LocationLatitude),
+                      colour="red", 
+                      alpha = 1/10,
+                      size = 0.5)
+print(gg)
+```
+
 
 
 ### Verify that subjects only took the survey once
@@ -1483,6 +1508,13 @@ boxplot(treatment$treatment_employment,
   names=c("employment", "education\n(baseline)", "retirement", "cybersecurity"))
 ```
 
+```{r}
+library(ggplot2)
+
+ggplot(control, aes(age, fill=control_education, colour=control_education)) + geom_density(alpha=0.2)
+```
+
+
 #### (Baseline) Education
 
 Education is the second question we asked in both treatment and control. It acts as our baseline because it does not include the name of our president. 
@@ -1849,6 +1881,9 @@ stargazer(lm.sec.1, lm.sec.2, lm.sec.3, title = "Cybersecurity Risk", type = "te
 11. Share slides with class at least 24 hours before the presentation.
 
 ## References
+
+1. https://www.huffingtonpost.com/entry/trump-optimism-american-public-polls_us_5a7140dbe4b0be822ba17210
+
 
 1. renaming column names: http://rprogramming.net/rename-columns-in-r/ 
 2. interaction terms: http://statisticsbyjim.com/regression/interaction-effects/ 
