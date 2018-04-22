@@ -12,18 +12,14 @@ output:
 
 The unfortunate aspect about American politics is that political polarization has become a defining norm. It becomes more apparent from the approval rating when a polarizing candidate steps in to office, like in the case of Donald J. Trump when he won the election as president of the United States. According to the 2017 surveys conducted by the Pew Research Center, 88% of Republicans approved of Trump's first year in office in contrast to the dismal 8% from the Democrats [1]. 
 
-But with the Russian investigation, high staff turnover rates, and Trump's failure to fulfill his campaign promises, it has left many Americans, including  Republicans, doubtful that their interests are being served. Or at least, that is what several media outlets claim. 
+But with the Russian investigation, high staff turnover rates, and Trump's failure to fulfill his campaign promises, it has left many Americans, including Republicans, doubtful that their interests are being served. Or at least, that is what several media outlets claim. 
 
-For this reason, we have decided to conduct an experiment
+For this reason, we decide to conduct an experiment to see if political divide and rise of pessimism were as accurate as the media portrayed. We selected four topics, each of which has considerable relevance to a person living in the United States and is neutral across political lines. By inserting Trump into these topics, we hope to address the media portrayal in two-fold:
+
+* Political polarization: Are we (as America) divided enough to have different level of optimism regardless of Trump?
+* Rise of pessimism due to Trump: Is the rise of pessimism strong enough that anything he says or do will trigger a level of anger regardless of the person's political affiliation?
 
 
-Polarization -> Are we divided enough to have a different level of optimism with and without Trump. 
-Is the rise of pessimism strong enough that anything he says or do will trigger a level of anger regardless of  political lines
-
-
-Does even a subtle reminder of a particularly polarizing political figure (here, Donald Trump) cause cognitive dissonance, i.e. inconsistent beliefs largely driven by an emotional response?
-
-Why? To understand whether deep political division and unrest portrayed by media result in significant gaps in optimism and economic outlook
 
 # Research Question
 
