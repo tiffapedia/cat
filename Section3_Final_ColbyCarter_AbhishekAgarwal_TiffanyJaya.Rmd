@@ -19,21 +19,21 @@ For this reason, we decided to conduct an experiment to see if the political div
 * Political polarization: Are we (as America) divided enough in political partisanship to have different level of optimism regardless of Trump?
 * Rise of pessimism due to Trump: Is the rise of pessimism strong enough that anything Donald Trump says or does will trigger a level of anger regardless of the person's political affiliation?
 
-
+By having the latter question as the basis of our research question, we will gain insight to both of these questions and in turn a better understanding of the media portrayal of the American public. 
 
 # Research Question
 
+Does the subtle mention of Donald Trump's name affect the level of optimism people have in general?
 
-Why is this interesting to someone who is predisposed to be interested?  
+**Why is this interesting to someone who is predisposed to be interested?** TODO (already addressed in Introduction?)
 
-What other people know about this? 
+**What other people know about this?** TODO (general knowledge of the public?)
 
-What (if any) observational work has to say about this question?
+**What (if any) observational work has to say about this question?** TODO (not sure if there was anything done on this, but there are several polls that suggest high level of pessimism)
 
 # Hypothesis 
 
 Given the strong emotional response that Trump elicits from people across the political spectrum, we hypothesize that even a subtle mention of his name can momentarily affect the immediate level of optimism some people have on important life priorities.
-
 
 
 # Experiment 
