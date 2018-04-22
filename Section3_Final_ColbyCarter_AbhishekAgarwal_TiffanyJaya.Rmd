@@ -14,10 +14,10 @@ The unfortunate aspect about American politics is that political polarization ha
 
 But with the Russian investigation, high staff turnover rates, and Trump's failure to fulfill his campaign promises, it has left many Americans, including Republicans, doubtful that their interests are being served. Or at least, that is what several media outlets claim. 
 
-For this reason, we decide to conduct an experiment to see if political divide and rise of pessimism were as accurate as the media portrayed. We selected four topics, each of which has considerable relevance to a person living in the United States and is neutral across political lines. By inserting Trump into these topics, we hope to address the media portrayal in two-fold:
+For this reason, we decided to conduct an experiment to see if the political divide and rise of pessimism were as accurate as the media portrayed. We selected four topics, each of which has considerable relevance to a person living in the United States and is neutral across political lines. By inserting Trump into these topics, we hope to address the media portrayal in two-fold:
 
-* Political polarization: Are we (as America) divided enough to have different level of optimism regardless of Trump?
-* Rise of pessimism due to Trump: Is the rise of pessimism strong enough that anything he says or do will trigger a level of anger regardless of the person's political affiliation?
+* Political polarization: Are we (as America) divided enough in political partisanship to have different level of optimism regardless of Trump?
+* Rise of pessimism due to Trump: Is the rise of pessimism strong enough that anything Donald Trump says or does will trigger a level of anger regardless of the person's political affiliation?
 
 
 
