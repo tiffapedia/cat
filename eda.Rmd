@@ -16,6 +16,7 @@ has found that voters’ pessimism about Trump’s presidency has outstripped op
 ## Load the libraries
 
 ```{r, include=FALSE, results='hide'}
+# load the library
 library(data.table) # fread
 library(dplyr)
 library(geonames)
