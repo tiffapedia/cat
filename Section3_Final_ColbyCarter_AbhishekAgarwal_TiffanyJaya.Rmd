@@ -21,7 +21,7 @@ _Does a subtle reminder of Donald Trump cause an immediate change in the level o
 
 We consider it important given the appearance of the current political climate. It is our hope that there is no strong effect across subjects, though we hypothesize that there could be heterogeneous effects for smaller segments of the population, including subsets of the political parties.
 
-A related survey was conducted recently to determine the level of optimism American workers have in employment outlook a year after President Trump's election[3]. It found that men were estimated twice as likely as women to be more optimistic, while there were also differences by race, education and geography. In our study, we control for these factors while considering the possibility of heterogeneous treatment effects. 
+A related survey was conducted recently to determine the level of optimism American workers have in employment outlook a year after President Trump's election[3]. It found that men were estimated twice as likely as women to be more optimistic, while there were also subtle differences by race, education and geography. In our study, we control for these factors while considering the possibility of heterogeneous treatment effects. 
 
 # Hypothesis 
 
@@ -33,10 +33,12 @@ Given the strong emotional response that Trump elicits from people across the po
 # load the library
 library(data.table) 
 library(dplyr)
+library(knitr)
 library(geonames)
 library(ggplot2)
 library(lmtest) 
 library(lubridate)
+library(png)
 library(reshape2)
 library(sandwich) 
 library(RJSONIO)
@@ -290,19 +292,32 @@ For those respondents who are assigned to treatment, they see all prompts with t
 
 _Now approaching a decade since the worst of the 2008 financial crisis, a steady recovery in the United States has brought a return of modest, sustained economic growth averaging roughly 2% annually, along with rising wage growth of over 3%. While rapid technological advancement has brought new efficiency and growth opportunities to many segments of the economy, many geographic areas and industries also face difficulties competing in global markets and continuing to provide economic opportunities. Overall, however, the unemployment rate has reached a decade-low of close to 4% **one year into the Donald Trump presidency**, a level lower than pre-crisis unemployment and considered by some economists to be full employment._
 
-Education is the only prompt that does not contain any Trump treatment in either subject group, which serves as both a check that our treatment was indeed chosen randomly and to avoid tipping the purpose of the survey. With each prompt, the respondent is given a minimum of 40 seconds to read the text and then answer the question, which is a sliding scale from 0 to 100; we use this wide scale in order to achieve some variance in the distribution of responses. The flow of the survey as well as an example of the scale are shown in Figure 1 and Figure 2-3 respectively. 
+Education is the only prompt that does not contain any Trump treatment in either subject group, which serves two purposes. It serves as a baseline to verify that the level of optimism in both treatment and control are approximately equal. It also poses as a diversion to the exact purpose of the survey. With each prompt, the respondent is given a minimum of 40 seconds to read the text and then answer the question, which is a sliding scale from 0 to 100; we use this wide scale in order to achieve some variance in the distribution of responses. The flow of the survey as well as an example of the scale are shown in Figure 1 and Figure 2-3 respectively. 
 
-![Survey Flow](images/survey_flow.png)
+```{r echo=FALSE, fig1, out.width="90%", fig.align="center", fig.cap="Survey Flow"}
+img_path.survey_flow <- "images/survey_flow.png"
+include_graphics(img_path.survey_flow)
+```
+```{r echo=FALSE, fig2, out.width="80%", fig.align="center", fig.cap="Scale used for employment, education, and retirement prompt"}
+img_path.optimistic_scale <- "images/optimistic_scale.png"
+include_graphics(img_path.optimistic_scale)
+```
 
-![Scale used for employment, education, and retirement prompt](images/optimistic_scale.png)
 
-![Scale used for cybersecurity prompt](images/threat_scale.png)
+
+```{r echo=FALSE, fig3, out.width="80%", fig.align="center", fig.cap="Scale used for cybersecurity prompt"}
+img_path.threat_scale <- "images/threat_scale.png"
+include_graphics(img_path.threat_scale)
+```
 
 ## Randomization Engineering
 
 To collect a broad sample of the American population, we turned to Mechanical Turk to select our subjects. We used Qualtrics to assign subjects to their respective control and treatment groups as shown in Figure 4. 
 
-![Random Assignment](images/random_assignment.png)
+```{r echo=FALSE, fig4, out.width="60%", fig.align="center", fig.cap="Random Assignment"}
+img_path.random_assignment <- "images/random_assignment.png"
+include_graphics(img_path.random_assignment)
+```
 
 Unfortunately, even though we have requested Mechanical Turk to select subjects only in the United States, we still receive users whose country of origin is not from the United States. Out of 688 subjects, 580 reside in the United States and 108 reside outside of the United States. 
 
@@ -315,7 +330,7 @@ colnames(m) <- c("US", "Non-US")
 knitr::kable(m)
 ```
 
-In addition, we filtered out subjects who did not complete the survey (including those who did not provide their consent) as well as subjects who took the survey more than once, which left us with 557 subjects with 262 in control and 295 in treatment.   
+In addition, we filtered out subjects who did not complete the survey (including those who did not provide their consent) as well as subjects who took the survey more than once, which left us with 557 subjects: 262 in control and 295 in treatment.   
 
 ```{r echo=FALSE}
 m <- matrix(c(d %>% filter(., treatment_ind == 0) %>% count(.), 
@@ -331,13 +346,45 @@ All devices connected to the same router will share the same external IP address
 
 ## Measurement of variables
 
-include charts of subjects from presentation
+We should have detailed information about what exact covariate imbalances exist
+
+
+In Figure 2 we get a sense of the joint distributions of
+three key variables: age, gender, and race. 
+
+young individuals
+weighted most heavily by CCES are often the same categories
+that MTurk was best at attracting.
+
+ 75% of all respondents in CCES and MTurk
+were White
+
+```{r echo=FALSE, out.width="80%", fig.align="center"}
+ggplot(d %>% group_by(age, ethnicity, gender) %>% tally(), 
+       aes(x = age, y = n, fill = ethnicity)) + 
+  geom_bar(stat = 'identity', position = 'stack') + facet_grid(~ gender)
+```
+
+```{r echo=FALSE, out.width="80%", fig.align="center"}
+ggplot(d %>% group_by(age, ethnicity, gender) %>% tally(), 
+       aes(x = age, y = n, fill = ethnicity)) + 
+  geom_bar(stat = 'identity', position = 'stack') + facet_grid(~ gender)
+```
+
+
+
+```{r}
+
+```
+
+
+
+
 
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 library(maps)
 library(ggplot2)
 usa_map <- map_data("state")
-usa_map <- world_map[world_map$region != "Antartica",]
 gg <- ggplot(usa_map)
 gg <- gg + geom_map(data = usa_map, 
                     map = usa_map, 
@@ -353,44 +400,11 @@ gg <- gg + geom_point(data = geomap1,
 print(gg)
 ```
 
-
-Better map: in progress
-```{r}
-library(ggplot2)
-library(dplyr)
-
-us <- map_data("state")
-
-arr <- USArrests %>% 
-  add_rownames("region") %>% 
-  mutate(region=tolower(region))
-
-gg <- ggplot()
-gg <- gg + geom_map(data=us, map=us,
-                    aes(x=long, y=lat, map_id=region),
-                    fill="#ffffff", color="#ffffff", size=0.15)
-gg <- gg + geom_map(data=geomap1, map=us,
-                    aes(fill=Murder, map_id=region),
-                    color="#ffffff", size=0.15)
-gg <- gg + scale_fill_continuous(low='thistle2', high='darkred', 
-                                 guide='colorbar')
-gg <- gg + labs(x=NULL, y=NULL)
-gg <- gg + coord_map("albers", lat0 = 39, lat1 = 45) 
-gg <- gg + theme(panel.border = element_blank())
-gg <- gg + theme(panel.background = element_blank())
-gg <- gg + theme(axis.ticks = element_blank())
-gg <- gg + theme(axis.text = element_blank())
-gg
-```
-
-
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 # political identity
 
 # able to vote
-# gender
-# age
-# ethnicity
+
 # marital status
 # have kids
 # community
