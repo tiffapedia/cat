@@ -10,36 +10,18 @@ output:
 
 # Introduction 
 
-The unfortunate aspect about American politics is that political polarization has become a defining norm. It becomes more apparent from the approval rating when a polarizing candidate steps in to office, like in the case of Donald J. Trump when he won the election as president of the United States. According to the 2017 surveys conducted by the Pew Research Center, 88% of Republicans approved of Trump's first year in office in contrast to the dismal 8% from the Democrats [1]. 
-
-But with the Russian investigation, high staff turnover rates, and Trump's failure to fulfill his campaign promises, it has left many Americans, including Republicans, doubtful that their interests are being served. Or at least, that is what several media outlets claim. 
-
-For this reason, we decided to conduct an experiment to see if the political divide and rise of pessimism were as accurate as the media portrayed. We selected four topics, each of which has considerable relevance to a person living in the United States and is neutral across political lines. By inserting Trump into these topics, we hope to address the media portrayal in two-fold:
-
-* Political polarization: Are we (as America) divided enough in political partisanship to have different level of optimism regardless of Trump?
-* Rise of pessimism due to Trump: Is the rise of pessimism strong enough that anything Donald Trump says or does will trigger a level of anger regardless of the person's political affiliation?
-
-By having the latter question as the basis of our research question, we will gain insight to both of these questions and in turn a better understanding of the media portrayal of the American public. 
+In the uncharted world of the Donald Trump presidency, there is an abundance of division,
+misinformation, confirmation bias, and at times cognitive dissonance. While there is nothing new about partisan politics and presidential approval dividing along political lines, we suspect that Trump elicits a distinctive emotional response from many that transcends this typical political divide. For example, as mainstream media sources have been clear in their opposition--such as the Washington Post’s post-inauguration slogan[1], “Democracy Dies in Darkness”--many conservative media and political pundits have reacted to the rise of Trump similarly, with National Review publishing an issue[2] titled “Against Trump,” prior to election day. We wonder whether this strong emotional response is prevalent and felt outside of the media and political punditry and seek to test whether even a subtle reminder of Trump can cause a moment of cognitive dissonance (i.e. inconsistent beliefs triggered by emotion). Or, alternatively, do we observe that typical Americans are consistent in their levels of optimism about the most important aspects of their lives, irrespective of who is president?
 
 # Research Question
 
-Does the subtle mention of Donald Trump's name affect the level of optimism people have in general?
+In this experiment, we seek to survey respondents who are representative of the American public to answer the following question:
 
-```{r include=FALSE}
-# Tiffany: Not sure if the following questions are necessary since they are mostly addressed in the Introduction.
-```
+_Does a subtle reminder of Donald Trump cause an immediate change in the level of optimism toward key aspects of life, such as employment or retirement prospects?_
 
-**Why is this interesting to someone who is predisposed to be interested?** 
+We consider it important given the appearance of the current political climate. It is our hope that there is no strong effect across subjects, though we hypothesize that there could be heterogeneous effects for smaller segments of the population, including subsets of the political parties.
 
-U.S. media has come under intense scrutiny recently for its bias reporting and sensationalizing news. Recently, rising wave of pessimism has been portrayed through many news and social media outlets about the Trump administration, and we would like to verify whether the optimism people have are consistent to the extremes being portrayed in the media. 
-
-**What other people know about this?**
-
-It is a shared public knowledge that Trump presidency has caused a rise of pessimism in the American public, but as far as we know, there has not been any experiment done to address this issue. 
-
-**What (if any) observational work has to say about this question?**
-
-Professor Christopher Borick from the Muhlenberg College Institute of Public Opinion conducted a survey similar to ours where he wants to determine the level of optimism American workers have in employment outloook a year after President Trump's election [2]. He found that a large portion of Americans do not feel differently about their employment outlook since Trump's victory. It was interesting to note, however, that men were twice as likely as women to be more optimistic. Whites shared greater enthusiasm about their employment outlook. The less-educated were modestly more optimistic than those who earn a bachelor degree or higher. Lastly, rural Americans exuded less optimism that might come about from Trump's not fulfilling his promise to revitalise these communities. 
+A related survey was conducted recently to determine the level of optimism American workers have in employment outlook a year after President Trump's election[3]. It found that men were estimated twice as likely as women to be more optimistic, while there were also differences by race, education and geography. In our study, we control for these factors while considering the possibility of heterogeneous treatment effects. 
 
 # Hypothesis 
 
@@ -52,8 +34,10 @@ Given the strong emotional response that Trump elicits from people across the po
 library(data.table) 
 library(dplyr)
 library(geonames)
+library(ggplot2)
 library(lmtest) 
-library(lubridate) 
+library(lubridate)
+library(reshape2)
 library(sandwich) 
 library(RJSONIO)
 library(stargazer)
@@ -287,55 +271,80 @@ d <- d %>% filter(., country == "United States")
 # filter out subjects who took the survey more than once
 subjects.repeater <- d %>% group_by(IPAddress) %>% summarize(freq = sum(n())) %>% filter(freq > 1)
 d <- d %>% filter(!(IPAddress %in% subjects.repeater$IPAddress))
+
+# indicate which subjects are in treatment and which are in control
+# since all subjects complete the survey by this point, this is a valid way to tag the subjects
+d$treatment_ind <- ifelse(is.na(d$control_cybersecurity_Page.Submit), 1, 0)
 ```
 
 ## Research Design
 
+Our experiment draws upon two sets of nearly identical surveys randomly assigned to one of two groups, our treatment and control. Both surveys contain four prompts on the subjects of employment, education, retirement and cybersecurity, followed by the questions:
 
+1. How do you feel about the general employment outlook for Americans over the next two decades?
+2. How do you feel about how the education system is preparing students to enter the workforce?
+3. How do you feel about your prospects for saving enough for retirement?
+4. How would you rate the threat of cyber-attacks to your security, private information or livelihood?
 
-The purpose of the study 
-The strategies
-The time diemnsion 
-The research environment
-Unit of analysis
-Sampling design
-Data collection method
-Measurement
-Data Analysis
+For those respondents who are assigned to treatment, they see all prompts with the same type of treatment, which we will call the “Trump treatment” hereafter; subjects assigned to control see no mentions of Trump, instead with a simple reference to the same period, such as “in 2018.” An example prompt follows, with the treatment emphasized:
+
+_Now approaching a decade since the worst of the 2008 financial crisis, a steady recovery in the United States has brought a return of modest, sustained economic growth averaging roughly 2% annually, along with rising wage growth of over 3%. While rapid technological advancement has brought new efficiency and growth opportunities to many segments of the economy, many geographic areas and industries also face difficulties competing in global markets and continuing to provide economic opportunities. Overall, however, the unemployment rate has reached a decade-low of close to 4% **one year into the Donald Trump presidency**, a level lower than pre-crisis unemployment and considered by some economists to be full employment._
+
+Education is the only prompt that does not contain any Trump treatment in either subject group, which serves as both a check that our treatment was indeed chosen randomly and to avoid tipping the purpose of the survey. With each prompt, the respondent is given a minimum of 40 seconds to read the text and then answer the question, which is a sliding scale from 0 to 100; we use this wide scale in order to achieve some variance in the distribution of responses. The flow of the survey as well as an example of the scale are shown in Figure 1 and Figure 2-3 respectively. 
+
+![Survey Flow](images/survey_flow.png)
+
+![Scale used for employment, education, and retirement prompt](images/optimistic_scale.png)
+
+![Scale used for cybersecurity prompt](images/threat_scale.png)
 
 ## Randomization Engineering
 
-![Figure 1. Random Assignment](images/random_assignment.png)
+To collect a broad sample of the American population, we turned to Mechanical Turk to select our subjects. We used Qualtrics to assign subjects to their respective control and treatment groups as shown in Figure 4. 
 
-![Figure 2. Survey Flow](images/survey_flow.png)
+![Random Assignment](images/random_assignment.png)
 
-Out of 638 subjects, 580 reside in the United States, 58 reside outside of the United States
+Unfortunately, even though we have requested Mechanical Turk to select subjects only in the United States, we still receive users whose country of origin is not from the United States. Out of 688 subjects, 580 reside in the United States and 108 reside outside of the United States. 
 
-```{r}
-# how many subjects are from United States?
-data %>% filter(., country == "United States") %>% count(.)
-# how many subjects are from outside the United States?
-data %>% filter(., country != "United States") %>% count(.)
+```{r echo=FALSE}
+m <- matrix(c(data %>% filter(., country == "United States") %>% count(.), 
+              data %>% filter(., country != "United States") %>% count(.)
+              ), 
+            ncol=2, byrow=TRUE)
+colnames(m) <- c("US", "Non-US")
+knitr::kable(m)
 ```
 
-Out of 638 subjects, 580 subjects are from the United States and 58 are from outside the United States.
+In addition, we filtered out subjects who did not complete the survey (including those who did not provide their consent) as well as subjects who took the survey more than once, which left us with 557 subjects with 262 in control and 295 in treatment.   
 
-```{r}
-data %>% group_by(country) %>% summarize(countries = unique(country), freq=sum(n()))
+```{r echo=FALSE}
+m <- matrix(c(d %>% filter(., treatment_ind == 0) %>% count(.), 
+              d %>% filter(., treatment_ind == 1) %>% count(.),
+              d %>% count(.)
+              ), 
+            ncol=3, byrow=TRUE)
+colnames(m) <- c("Control", "Treatment", "Total")
+knitr::kable(m)
 ```
 
-```{r}
+All devices connected to the same router will share the same external IP address. The reason why we removed repeated test-takers with the same IP address is because we have no way to confirm whether or not the test-takers are roommates, people who are visiting, or the same individual. The data themselves are conflicting with some answers completely the same while others completely different in terms of the covariates. To be safe, we have removed these repeated test-takers from our analysis.
+
+## Measurement of variables
+
+include charts of subjects from presentation
+
+```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 library(maps)
 library(ggplot2)
-world_map <- map_data("world")
-world_map <- world_map[world_map$region != "Antartica",]
-gg <- ggplot(world_map)
-gg <- gg + geom_map(data = world_map, 
-                    map = world_map, 
-                    aes(x=long, y=lat, map_id = region),
+usa_map <- map_data("state")
+usa_map <- world_map[world_map$region != "Antartica",]
+gg <- ggplot(usa_map)
+gg <- gg + geom_map(data = usa_map, 
+                    map = usa_map, 
+                    aes(map_id = region),
                     fill = "white",
                     color = "gray70")
-geomap1 <- unique(data, by=c("LocationLatitude", "LocationLongitude"))
+geomap1 <- unique(d, by=c("LocationLatitude", "LocationLongitude"))
 gg <- gg + geom_point(data = geomap1,
                       aes(LocationLongitude, LocationLatitude),
                       colour="red", 
@@ -344,13 +353,52 @@ gg <- gg + geom_point(data = geomap1,
 print(gg)
 ```
 
-Remove repeater, same IP different zip codes
 
-Show 
+Better map: in progress
+```{r}
+library(ggplot2)
+library(dplyr)
 
-## Experimental Materials
+us <- map_data("state")
 
-## Measurement of variables
+arr <- USArrests %>% 
+  add_rownames("region") %>% 
+  mutate(region=tolower(region))
+
+gg <- ggplot()
+gg <- gg + geom_map(data=us, map=us,
+                    aes(x=long, y=lat, map_id=region),
+                    fill="#ffffff", color="#ffffff", size=0.15)
+gg <- gg + geom_map(data=geomap1, map=us,
+                    aes(fill=Murder, map_id=region),
+                    color="#ffffff", size=0.15)
+gg <- gg + scale_fill_continuous(low='thistle2', high='darkred', 
+                                 guide='colorbar')
+gg <- gg + labs(x=NULL, y=NULL)
+gg <- gg + coord_map("albers", lat0 = 39, lat1 = 45) 
+gg <- gg + theme(panel.border = element_blank())
+gg <- gg + theme(panel.background = element_blank())
+gg <- gg + theme(axis.ticks = element_blank())
+gg <- gg + theme(axis.text = element_blank())
+gg
+```
+
+
+```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
+# political identity
+
+# able to vote
+# gender
+# age
+# ethnicity
+# marital status
+# have kids
+# community
+# highest education
+# employment 
+# income 
+# internet
+```
 
 ## Modeling choices
 
@@ -358,7 +406,15 @@ Show
 
 Clean, clear, well articulated relationships between your theory, your hypotheses, the numbers that your models produce, and the figures you present
 
+* power analysis
+
+* 
+
 # References
 
-1. Smith, Samantha. “The Partisan Divide on Political Values Grows Even Wider.” Pew Research Center for the People and the Press, 5 Oct. 2017, www.people-press.org/2017/10/05/the-partisan-divide-on-political-values-grows-even-wider/.
-2. Borick, Christopher. “Capital - Are American Workers More Optimistic under Trump?” BBC, BBC, 8 Nov. 2017, www.bbc.com/capital/story/20171108-are-american-workers-more-optimistic-under-trump.
+1. "The Washington Post: 'Democracy dies in darkness' | TheHill." The Hill - covering Congress, Politics, Political Campaigns and Capitol Hill, 22 Feb. 2017, 
+www.people-press.org/2017/10/05/the-partisan-divide-on-political-values-grows-even-wider.
+
+2. "Donald Trump -- Conservative Movement Shouldn't Support Him | National Review." National Review: Conservative News, Opinion, Politics, Policy, & Current Events, 22 Jan. 2016, www.nationalreview.com/2016/01/donald-trump-conservative-movement-menace.
+
+3. Borick, Christopher. “Capital - Are American Workers More Optimistic under Trump?” BBC, BBC, 8 Nov. 2017, www.bbc.com/capital/story/20171108-are-american-workers-more-optimistic-under-trump.
