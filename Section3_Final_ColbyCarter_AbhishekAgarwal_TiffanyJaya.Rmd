@@ -312,7 +312,7 @@ include_graphics(img_path.threat_scale)
 
 ## Randomization Engineering
 
-To collect a broad sample of the American population, we turned to Mechanical Turk to select our subjects. We used Qualtrics to assign subjects to their respective control and treatment groups as shown in Figure 4. 
+To collect a broad sample of the American population, we turned to Mechanical Turk to select our subjects. We used Qualtrics to assign subjects equally to their respective control and treatment groups as shown in Figure 4. 
 
 ```{r echo=FALSE, fig4, out.width="60%", fig.align="center", fig.cap="Random Assignment"}
 img_path.random_assignment <- "images/random_assignment.png"
@@ -342,9 +342,28 @@ colnames(m) <- c("Control", "Treatment", "Total")
 knitr::kable(m)
 ```
 
-All devices connected to the same router will share the same external IP address. The reason why we removed repeated test-takers with the same IP address is because we have no way to confirm whether or not the test-takers are roommates, people who are visiting, or the same individual. The data themselves are conflicting with some answers completely the same while others completely different in terms of the covariates. To be safe, we have removed these repeated test-takers from our analysis.
+All devices connected to the same router will share the same external IP address. The reason why we removed repeated test-takers with the same IP address is because we have no way to confirm whether or not the test-takers are roommates, people who are visiting, or the same individual. The data themselves are conflicting with some answers completely the same while others completely different in terms of the covariates. To be safe, we removed these repeated test-takers from our analysis.
 
-## Measurement of variables
+## Measurement of variables: covariates
+
+
+
+```{r}
+# gender frequency in the control group
+(control.gender.freq <- d %>% 
+  group_by(gender) %>% 
+  summarize(freq = sum(n()))) 
+```
+
+```{r}
+# percentage of noncompliant in the control group
+control.gender.freq[which(control.gender.freq == ""),]$freq / sum(control.gender.freq$freq) * 100
+# percentage of female in the control group
+control.gender.freq[which(control.gender.freq == "Female"),]$freq / sum(control.gender.freq$freq) * 100
+# percentage of male in the control group
+control.gender.freq[which(control.gender.freq == "Male"),]$freq / sum(control.gender.freq$freq) * 100
+```
+
 
 We should have detailed information about what exact covariate imbalances exist
 
@@ -359,25 +378,28 @@ that MTurk was best at attracting.
  75% of all respondents in CCES and MTurk
 were White
 
-```{r echo=FALSE, out.width="80%", fig.align="center"}
-ggplot(d %>% group_by(age, ethnicity, gender) %>% tally(), 
-       aes(x = age, y = n, fill = ethnicity)) + 
-  geom_bar(stat = 'identity', position = 'stack') + facet_grid(~ gender)
+
+
+
+```{r echo=FALSE, fig5, fig.caption="Gender differences in control and treatment", ›out.width="80%", fig.align="center"}
+ggplot(d %>% 
+         filter(., gender != "") %>% 
+         group_by(gender, treatment_ind) %>% 
+         tally(), 
+       aes(x = gender, y = n)) + 
+geom_bar(stat = 'identity', position = 'stack', show.legend=FALSE) + 
+facet_grid(~ treatment_ind, labeller = as_labeller(c(`0`="Control", `1`="Treatment"))) + 
+aes(fill = as.factor(treatment_ind))
 ```
 
 ```{r echo=FALSE, out.width="80%", fig.align="center"}
-ggplot(d %>% group_by(age, ethnicity, gender) %>% tally(), 
+ggplot(d %>%
+         filter(., gender != "") %>%
+         group_by(age, ethnicity, gender) %>% 
+         tally(), 
        aes(x = age, y = n, fill = ethnicity)) + 
   geom_bar(stat = 'identity', position = 'stack') + facet_grid(~ gender)
 ```
-
-
-
-```{r}
-
-```
-
-
 
 
 
