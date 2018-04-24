@@ -19,9 +19,9 @@ In this experiment, we seek to survey respondents who are representative of the 
 
 _Does a subtle reminder of Donald Trump cause an immediate change in the level of optimism toward key aspects of life, such as employment or retirement prospects?_
 
-We consider it important given the appearance of the current political climate. It is our hope that there is no strong effect across subjects, though we hypothesize that there could be heterogeneous effects for smaller segments of the population, including subsets of the political parties.
+We consider it important given the appearance of the current political climate. It is our hope that there is _no_ strong effect across subjects, though we hypothesize that there could be heterogeneous effects for smaller segments of the population, including subsets of the political parties.
 
-A related survey was conducted recently to determine the level of optimism American workers have in employment outlook a year after President Trump's election[3]. It found that men were estimated twice as likely as women to be more optimistic, while there were also subtle differences by race, education and geography. In our study, we control for these factors while considering the possibility of heterogeneous treatment effects. 
+A related survey was conducted recently to determine the level of optimism American workers have in employment outlook a year after President Trump's election[3]. It found that a large majority of Americans (48.9%) do not feel differently about their employment outlook since Trump's victory. However, men were estimated twice as likely as women to be more optimistic although there were subtle differences by race, education and geography. In our study, we control for these factors while considering the possibility of heterogeneous treatment effects. 
 
 # Hypothesis 
 
@@ -29,8 +29,9 @@ Given the strong emotional response that Trump elicits from people across the po
 
 # Experiment 
 
-```{r, include=FALSE}
+```{r include=FALSE}
 # load the library
+library(car)
 library(data.table) 
 library(dplyr)
 library(knitr)
@@ -48,7 +49,7 @@ library(RJSONIO)
 library(stargazer)
 ```
 
-```{r, include=FALSE}
+```{r include=FALSE}
 # helper function 
 convert_fctr_to_boolean <- function(col) {
   return(as.numeric(as.logical(col)))
@@ -62,22 +63,9 @@ convert_fctr_to_numeric <- function(col) {
 convert_fctr_to_str <- function(col) {
   return(as.character(col))
 }
-format_table <- function(list, title) {
-  table <- tableGrob(list)
-  title <- textGrob(title, gp=gpar(fontsize=11))
-  table <- gtable_add_rows(
-    table, 
-    heights = grobHeight(title) + unit(5,"mm"),
-    pos = 0)
-  table <- gtable_add_grob(
-    table, 
-    title, 
-    1, 1, 1, ncol(table))
-  return(table)
-}
 ```
 
-```{r, include=FALSE}
+```{r include=FALSE}
 # load the dataset
 d <- read.csv(file = "data/W241 Colby Carter, Tiffany Jaya, Abhishek Agarwal_April 22, 2018_15.32.csv",
               header = TRUE, 
@@ -306,11 +294,11 @@ Our experiment draws upon two sets of nearly identical surveys randomly assigned
 3. How do you feel about your prospects for saving enough for retirement?
 4. How would you rate the threat of cyber-attacks to your security, private information or livelihood?
 
-For those respondents who are assigned to treatment, they see all prompts with the same type of treatment, which we will call the “Trump treatment” hereafter; subjects assigned to control see no mentions of Trump, instead with a simple reference to the same period, such as “in 2018.” An example prompt follows, with the treatment emphasized:
+For those respondents who are assigned to treatment group, they see all prompts with the same type of treatment wording, which we will call the “Trump treatment” hereafter. Subjects assigned to control see no mentions of Trump, but instead see a simple reference to the same period, such as “in 2018.” An example prompt follows, with the treatment emphasized:
 
 _Now approaching a decade since the worst of the 2008 financial crisis, a steady recovery in the United States has brought a return of modest, sustained economic growth averaging roughly 2% annually, along with rising wage growth of over 3%. While rapid technological advancement has brought new efficiency and growth opportunities to many segments of the economy, many geographic areas and industries also face difficulties competing in global markets and continuing to provide economic opportunities. Overall, however, the unemployment rate has reached a decade-low of close to 4% **one year into the Donald Trump presidency**, a level lower than pre-crisis unemployment and considered by some economists to be full employment._
 
-Education is the only prompt that does not contain any Trump treatment in either subject group, which serves two purposes. It serves as a baseline to verify that the level of optimism in both treatment and control are approximately equal. It also poses as a diversion to the exact purpose of the survey. With each prompt, the respondent is given a minimum of 40 seconds to read the text and then answer the question, which is a sliding scale from 0 to 100; we use this wide scale in order to achieve some variance in the distribution of responses. The flow of the survey as well as an example of the scale are shown in Figure 1 and Figure 2-3 respectively. 
+Education is the only prompt that does not contain any Trump treatment in either subject group, which serves two purposes. First, it serves as a baseline to verify that the level of optimism in both treatment and control are approximately equal. It also poses as a diversion to the exact purpose of the survey by omitting the Trump reference. With each prompt, the respondent is given a minimum of 40 seconds to read the text and then answer the question, which is a sliding scale from 0 to 100. We use this wide scale in order to achieve some variance in the distribution of responses. The flow of the survey as well as an example of the scale are shown in Figure 1 and Figure 2-3 respectively. 
 
 ```{r echo=FALSE, fig1, out.width="90%", fig.align="center", fig.cap="Survey Flow"}
 img_path.survey_flow <- "images/survey_flow.png"
@@ -330,7 +318,9 @@ include_graphics(img_path.threat_scale)
 
 ## Randomization Engineering
 
-To collect a broad sample of the American population, we turned to Mechanical Turk to select our subjects. We used Qualtrics to assign subjects equally to their respective control and treatment groups as shown in Figure 4. 
+To collect a broad sample of the American population, we turned to Mechanical Turk to select our subjects. We used Qualtrics to assign subjects equally to their respective control and treatment groups as shown in Figure 4. We sought a group of at least 450 respondents to achieve statistical power of at least 90%, where we assumed the maximum variation in the response variable (i.e. a standard deviation of roughly 25 points). 
+
+**TODO: add power test**
 
 ```{r echo=FALSE, fig4, out.width="60%", fig.align="center", fig.cap="Random Assignment"}
 img_path.random_assignment <- "images/random_assignment.png"
@@ -360,57 +350,104 @@ colnames(m) <- c("Control", "Treatment", "Total")
 knitr::kable(m)
 ```
 
-All devices connected to the same router will share the same external IP address. The reason why we removed repeated test-takers with the same IP address is because we have no way to confirm whether or not the test-takers are roommates, people who are visiting, or the same individual. The data themselves are conflicting with some answers completely the same while others completely different in terms of the covariates. To be safe, we removed these repeated test-takers from our analysis.
+The reason why we removed repeated test-takers with the same IP address is because we have no way to confirm whether or not the test-takers are roommates, people who are visiting, or the same individual. If they were different people who ended up not using the same device, we still cannot differentiate because all devices connected to the same router share the same external IP address. In addition, the data themselves are conflicting with some answers completely the same while others completely different in terms of the covariates. For this reason, we decided to be conservative and removed these repeated test-takers from our analysis.
 
 ## Measurement of variables: covariates
 
+To increase the precision of our estimated treatment effects on the subjects' optimistic score, we also collected key covariates from the subjects in the form of a multiple choice answers. Covariates were chosen based on how likely they might influence the subjects on deciding their optimism level in the four prompts. For example, given the political nature of our chosen treatment, we collected the political preferences of the subjects along with a number of standard demographic factors such as gender, age and ethnicity. In addition to potentially increasing the fit of our models, the distributions of these variables can help explain whether or not our findings are generalizable beyond Mechanical Turks to the greater American population. 
 
-We should have detailed information about what exact covariate imbalances exist
+In order to derive more meaning, we re-categorized:
+* age into young adults (ages 18-34), middle-aged adults (ages 35-54), and older adults (aged 55 and older). We also re-categorized income into 
+* income into 
+* the highest level of education into 
+* the subject's employment status into 
 
+```{r include=FALSE}
+# re-categorize age, ethnicity
+d <- d %>% mutate(age = recode_factor(age, 
+                                     `18 - 24` = "young adult", `25 - 34` = "young adult",
+                                     `35 - 44` = "middle-aged adult", `45 - 54` = "middle-aged adult",
+                                     `55 - 64` = "old adult", `65 - 74` = "old adult", 
+                                     .ordered = TRUE))
+d <- d %>% mutate(ethnicity = recode_factor(ethnicity, 
+                                     `American Indian or Alaska Native` = "Native A.",
+                                     `Asian` = "Asian",
+                                     `Black or African American` = "Black", 
+                                     `Other` = "Other",
+                                     `White` = "White",
+                                     .ordered = FALSE))
 
-In Figure 2 we get a sense of the joint distributions of
-three key variables: age, gender, and race. 
-
-young individuals
-weighted most heavily by CCES are often the same categories
-that MTurk was best at attracting.
-
-
-```{r, echo=FALSE}
-prop.table(table(d$treatment_ind, d$gender) %>% .[,c("Female", "Male")], margin=2)
+# re-order ranking
+d$community <- ordered(d$community, c("Rural", "Suburban", "Urban"))
+d$marital_status <- ordered(d$marital_status, c("Never married", "Married", "Separated", "Divorced", "Widowed"))
 ```
 
-```{r echo=FALSE, fig5, fig.caption="Gender differences in control and treatment", out.width="80%", fig.align="center"}
-ggplot(d %>% 
-         filter(., gender != "") %>% 
-         group_by(gender, treatment_ind) %>% 
-         tally(), 
-       aes(x = gender, y = n)) + 
-geom_bar(stat = 'identity', position = 'stack', show.legend=FALSE) + 
-facet_grid(~ treatment_ind, labeller = as_labeller(c(`0`="Control", `1`="Treatment"))) + 
-aes(fill = as.factor(treatment_ind))
-```
+### Age, gender, ethnicity
 
+We first compare the basic demographic variables of our subjects: age, gender, ethnicity.  What we have discovered is that the distribution of the subjects is similar to the findings found by Connor Huff and Dustin Tingley who evaluate the demographic characteristics of MTurk survey respondents [4]:
 
-```{r, echo=FALSE}
-prop.test(table(d$treatment_ind, d$gender) %>% .[,c("Female", "Male")], correct=FALSE)
-```
+* The ratio of men to women is approximately equal. In our experiment, however, young adult men outweighs young adult women in the number of surveys taken and vice-versa for the middle-aged adults.
+* MTurk attracts more young adults than old adults compared to the relative US population.
+* There is a higher percentage of white who participated in MTurk survey (84% vs census 76.9%) than other ethnic group when compared to that of the US population as estimated by the US Census Bureau (black: 7% vs census 13.3%, Asian: 4% vs 5.7%) [5]. 
 
-```{r, echo=FALSE}
-control.ethnicity.percentage <- d %>% 
-  filter(., treatment_ind == 0 & ethnicity != "") %>%
-  group_by(ethnicity) %>%
-  summarize(freq = sum(n())) %>%
-  mutate(percentage = freq / sum(freq))
-treatment.ethnicity.percentage <- d %>%
-  filter(., treatment_ind == 1 & ethnicity != "") %>%
-  group_by(ethnicity) %>%
-  summarize(freq = sum(n())) %>%
-  mutate(percentage = freq / sum(freq))
+We might consider taking these covariates into consideration in our regression.
+
+```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
+# age
+plot.age.dist <- d %>% filter(., age != "") %>% 
+                       mutate(age = recode_factor(age, `young adult` = "young", 
+                                                       `middle-aged adult` = "middle",
+                                                       `old adult` = "old")) %>%
+                       group_by(age, treatment_ind) %>% 
+                       tally() %>%
+                       ggplot(aes(x = age, y =  n, fill = factor(treatment_ind))) + 
+                         geom_bar(stat = "identity", position = "dodge") + 
+                         ggtitle("Age differences between control and treatment")  + 
+                         scale_fill_discrete(name = "Group type", 
+                                             breaks = c(0, 1), 
+                                             labels = c("Control", "Treatment")) +
+                         theme(axis.text.x = element_text(angle=90))
 grid.arrange(
-  format_table(control.ethnicity.percentage, "Control"),
-  format_table(treatment.ethnicity.percentage, "Treatment"),
-  nrow=1
+  plot.age.dist,
+  tableGrob(table(d$treatment_ind, d$age) %>% 
+                  .[,c("young adult", "middle-aged adult", "old adult")]),
+  tableGrob(prop.table(table(d$age, d$treatment_ind), margin=2)),
+  layout_matrix = rbind(c(1, 1, 2, 2, 2), c(1, 3, 3, 3, 3))
+)
+# gender
+plot.gender.dist <- d %>% filter(., gender != "") %>% 
+                       group_by(gender, treatment_ind) %>% 
+                       tally() %>%
+                       ggplot(aes(x = gender, y =  n, fill = factor(treatment_ind))) + 
+                         geom_bar(stat = "identity", position = "dodge") + 
+                         ggtitle("Gender differences between control and treatment")  + 
+                         scale_fill_discrete(name = "Group type", 
+                                             breaks = c(0, 1), 
+                                             labels = c("Control", "Treatment")) + 
+                         theme(axis.text.x = element_text(angle=90))
+grid.arrange(
+  plot.gender.dist,
+  tableGrob(table(d$treatment_ind, d$gender) %>% .[,c("Female", "Male")]),
+  tableGrob(prop.table(table(d$gender, d$treatment_ind), margin=2)),
+  layout_matrix = rbind(c(1, 1, 2, 2, 2), c(1, 3, 3, 3, 3))
+)
+# ethnicity
+plot.ethnicity.dist <- d %>% filter(., ethnicity != "") %>% 
+                       group_by(ethnicity, treatment_ind) %>% 
+                       tally() %>%
+                       ggplot(aes(x = ethnicity, y =  n, fill = factor(treatment_ind))) + 
+                         geom_bar(stat = "identity", position = "dodge") + 
+                         ggtitle("Ethnicity differences between control and treatment")  + 
+                         scale_fill_discrete(name = "Group type", 
+                                             breaks = c(0, 1), 
+                                             labels = c("Control", "Treatment")) + 
+                         theme(axis.text.x = element_text(angle=90))
+
+plot.ethnicity.dist
+grid.arrange(
+  tableGrob(table(d$treatment_ind, d$ethnicity) %>% .[,c("Native A.", "Asian", "Black", "Other", "White")]),
+  tableGrob(prop.table(table(d$ethnicity, d$treatment_ind), margin=2)),
+  nrow=2
 )
 ```
 
@@ -420,53 +457,110 @@ ggplot(d %>%
          group_by(age, ethnicity, gender) %>% 
          tally(), 
        aes(x = age, y = n, fill = ethnicity)) + 
-  geom_bar(stat = 'identity', position = 'stack') + facet_grid(~ gender)
+geom_bar(stat = 'identity', position = 'stack') + facet_grid(~ gender) + 
+theme(axis.text.x = element_text(angle=90, hjust=1)) + 
+ggtitle("Gender and age composition for different racial categories")
 ```
 
+### Political party
 
+There are in general more Democrats than Republicans taking the survey in the young to middle-aged adult group. It was interesting to note that those who did not vote tend to affiliate themselves with the Democrat and Independent ideology. We can only assume these individuals are immigrants but further research is required for this statement to be validated. In addition, a higher percentage of Democrats lived in urban communities compared to Republicans, but again, the majority of those living in urban communities are young adults and they are a large part of our test subjects. For this reason, we decide to take into consideration the political_party and age as key covariates in our regression because there is a high proportion of test takers who are young adults; also, we assumed that political party play a key role in the level of optimism on the treatment effect.
 
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
-library(maps)
-library(ggplot2)
-usa_map <- map_data("state")
-gg <- ggplot(usa_map)
-gg <- gg + geom_map(data = usa_map, 
-                    map = usa_map, 
-                    aes(map_id = region),
-                    fill = "white",
-                    color = "gray70")
-geomap1 <- unique(d, by=c("LocationLatitude", "LocationLongitude"))
-gg <- gg + geom_point(data = geomap1,
-                      aes(LocationLongitude, LocationLatitude),
-                      colour="red", 
-                      alpha = 1/10,
-                      size = 0.5)
-print(gg)
+ggplot(d %>%
+         filter(., political_party != "") %>%
+         group_by(can_vote, age, political_party) %>% 
+         tally(), 
+aes(x = factor(can_vote), y = n, fill = factor(age))) +
+scale_fill_manual(values = c("light green", "green", "dark green"),
+                  name = "Political Party?") + 
+geom_bar(stat = 'identity', position = 'stack') + facet_grid(~ political_party) + 
+theme(axis.text.x = element_text(angle=90, hjust=1)) + 
+ggtitle("Age and ability to vote composition for different political parties") 
+
+
+ggplot(d %>%
+         filter(., community != "") %>%
+         group_by(community, age, political_party) %>% 
+         tally(), 
+aes(x = community, y = n, fill = factor(age))) +
+scale_fill_manual(values = c("light green", "green", "dark green"),
+                  name = "Political Party?") + 
+geom_bar(stat = 'identity', position = 'stack') + facet_grid(~ political_party) + 
+theme(axis.text.x = element_text(angle=90, hjust=1)) + 
+ggtitle("Living communities and age composition for different political parties") 
 ```
 
-```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
-# political identity
+### Community, Marital Statis, Children
 
-# able to vote
+We have discovered that the majority of the subjects live in suburban neighborhood, and on average, they tend to be married and have children. Nothing stands out of the obvious that we should take into consideration in our regression models. 
 
-# marital status
-# have kids
-# community
-# highest education
-# employment 
-# income 
-# internet
+```{r echo=FALSE, out.width="80%", fig.align="center"}
+ggplot(d %>%
+         filter(., community != "") %>%
+         group_by(community, marital_status, have_kids) %>% 
+         tally(), 
+       aes(x = community, y = n, fill = factor(have_kids))) +
+scale_fill_manual(values = c("black", "blue"),
+                  name = "Have kids?", 
+                  breaks = c(0, 1), 
+                  labels = c("No", "Yes")) + 
+geom_bar(stat = 'identity', position = 'stack') + facet_grid(~ marital_status) + 
+theme(axis.text.x = element_text(angle=90, hjust=1)) + 
+ggtitle("Marital status and number of children for different communities") 
 ```
+
+
+### Education, Employment and Income
+
+```{r echo=FALSE, out.width="80%", fig.align="center"}
+ggplot(d %>%
+         group_by(highest_education, employment_status, income) %>% 
+         tally(), 
+aes(x = highest_education, y = n, fill = factor(income))) +
+geom_bar(stat = 'identity', position = 'stack') + facet_grid(~ employment_status) + 
+theme(axis.text.x = element_text(angle=90, hjust=1)) + 
+ggtitle("Marital status and number of children for different communities") 
+```
+
+highest_education
+employment_status
+income
+
+
+### Internet
+
+
 
 ## Modeling choices
 
+To estimate any treatment effects on our subjects’ levels of optimism, we first examine the distributions of scores to verify whether ordinary least squares regression is appropriate and there are significant differences between the two groups. For each outcome measure, we see a high variance of responses, with the mean employment optimism at [5x%], retirement savings at [4X%], and cybersecurity risk at [7X%]; the education check has mean [4X]%. Within each question, the treatment and control distributions do not show significant differences as measured by Cohen’s d (all less than 0.2). Still, with some imbalances in the key covariates, OLS regression can control for these differences and estimate any treatment effects with stronger precision than a comparison of means.
+
+Because of the scale and wide variance of our outcome variables, we expect that OLS regression will produce the most efficient and unbiased estimates of any treatment effects, particularly after controlling for the key covariates explored above. After hypothesizing which variables will have relationships with the outcomes, we can select models for which those covariates contribute to the model fit, according to a log-likelihood ratio test. Similarly, we also test interaction terms to estimate heterogeneous treatment effects by political preference. While our intuition is that there could be significantly different emotional responses to the Trump reference from some Left/Liberal respondents, the preliminary analysis below on retirement optimism shows little effect, if maybe a positive one.
+
 # Result
 
-Clean, clear, well articulated relationships between your theory, your hypotheses, the numbers that your models produce, and the figures you present
+```{r}
+ggplot(d, aes(x=factor(income), y=education_score, col = as.factor(treatment_ind))) + geom_boxplot() + xlab("Income") + ylab("Education Score") + labs(col = "treatment") + theme(axis.text.x = element_text(angle=75, hjust=1))
+```
 
-* power analysis
 
-* 
+```{r}
+# education
+lm.ed.1 <- lm(education_score ~ treatment_ind, data = d)
+lm.ed.2 <- lm(education_score ~ treatment_ind + political_party + high_ed_ind + gender + community, data = d)
+
+anova(lm.ed.2, test = "LRT")
+
+# SWITCH FROM "text" TO "latex" FOR FINAL OUTPUTS
+stargazer(lm.ed.1, lm.ed.2, title = "Value on Education", type = "latex",
+          column.labels = c("Treatment Only","With Covariates"),
+          dep.var.labels = "Education Feeling Score (0 to 100)",
+          star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE)
+
+```
+
+
 
 # References
 
@@ -476,3 +570,7 @@ www.people-press.org/2017/10/05/the-partisan-divide-on-political-values-grows-ev
 2. "Donald Trump -- Conservative Movement Shouldn't Support Him | National Review." National Review: Conservative News, Opinion, Politics, Policy, & Current Events, 22 Jan. 2016, www.nationalreview.com/2016/01/donald-trump-conservative-movement-menace.
 
 3. Borick, Christopher. “Capital - Are American Workers More Optimistic under Trump?” BBC, BBC, 8 Nov. 2017, www.bbc.com/capital/story/20171108-are-american-workers-more-optimistic-under-trump.
+
+4. Huff, Connor and Dustin Tingley, “'Who are these people?' Evaluating the demographic characteristics and political preferences of MTurk survey respondents," _Research and Politics_, July-September 2015: 1–12, http://journals.sagepub.com/doi/pdf/10.1177/2053168015604648
+
+5. https://www.census.gov/quickfacts/fact/table/US/PST045217
