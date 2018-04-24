@@ -669,40 +669,16 @@ theme(axis.text.x = element_text(angle=90))
 
 ### Georgraphy
 
-
-map.df <- merge(states, x, by="region", all.x=T)
-map.df <- map.df[order(map.df$order),]
-gg <- ggplot(states)
-ggplot(map.df, aes(x=d$LocationLatitude, y=d$LocationLongitude))+
-  geom_polygon(aes(fill=Count))+
-  geom_path()+ 
-  scale_fill_gradientn(colours=rev(heat.colors(10)),na.value="grey90")+
-  coord_map()
-  
-  
 ```{r echo=FALSE}
-usa_map <- map_data("state")
-gg <- ggplot(usa_map)
+library(ggmap)
+map<-get_map(location='united states', zoom=4, maptype = "terrain",
+             source='google',color='color')
+ggmap(map) + geom_point(
+        aes(x=LocationLongitude, y=LocationLatitude, show_guide = TRUE), 
+        data=d, alpha=.5, na.rm = T)  + 
+        scale_color_gradient(low="beige", high="red")
+       
 ```
-
-
-library(maps)
-library(ggplot2)
-world_map <- map_data("world")
-world_map <- world_map[world_map$region != "Antartica",]
-gg <- ggplot(world_map)
-gg <- gg + geom_map(data = world_map, 
-                    map = world_map, 
-                    aes(x=long, y=lat, map_id = region),
-                    fill = "white",
-                    color = "gray70")
-geomap1 <- unique(data, by=c("LocationLatitude", "LocationLongitude"))
-gg <- gg + geom_point(data = geomap1,
-                      aes(LocationLongitude, LocationLatitude),
-                      colour="red", 
-                      alpha = 1/10,
-                      size = 0.5)
-print(gg)
 
 ## Modeling choices
 
