@@ -40,6 +40,7 @@ library(ggplot2)
 library(grid)
 library(gridExtra)
 library(gtable)
+library(maps)
 library(lmtest) 
 library(lubridate)
 library(png)
@@ -291,6 +292,32 @@ d$retirement_score <- ifelse(is.na(d$treatment_retirement), d$control_retirement
 d$cybersecurity_score <- ifelse(is.na(d$treatment_cybersecurity), d$control_cybersecurity, d$treatment_cybersecurity)
 ```
 
+```{r}
+d <- data
+d <- d %>% filter(., Progress == 100)
+
+# filter for subjects who consented to take the survey
+d <- d[which(d$consent == 1),]
+
+# filter for subjects who are from USA
+d <- d %>% filter(., country == "United States")
+
+# filter out subjects who took the survey more than once
+subjects.repeater <- d %>% group_by(IPAddress) %>% summarize(freq = sum(n())) %>% filter(freq > 1)
+d <- d %>% filter(!(IPAddress %in% subjects.repeater$IPAddress))
+
+# indicate which subjects are in treatment and which are in control
+# since all subjects complete the survey by this point, this is a valid way to tag the subjects
+d$treatment_ind <- ifelse(is.na(d$control_cybersecurity_Page.Submit), 1, 0)
+
+# combining the scores into one
+d$employment_score <- ifelse(is.na(d$treatment_employment), d$control_employment, d$treatment_employment)
+d$education_score <- ifelse(is.na(d$treatment_education), d$control_education, d$treatment_education)
+d$retirement_score <- ifelse(is.na(d$treatment_retirement), d$control_retirement, d$treatment_retirement)
+d$cybersecurity_score <- ifelse(is.na(d$treatment_cybersecurity), d$control_cybersecurity, d$treatment_cybersecurity)
+```
+
+
 ## Research Design
 
 Our experiment draws upon two sets of nearly identical surveys randomly assigned to one of two groups, our treatment and control. Both surveys contain four prompts on the subjects of employment, education, retirement and cybersecurity, followed by the questions:
@@ -365,6 +392,7 @@ The reason why we removed repeated test-takers with the same IP address is becau
 To increase the precision of our estimated treatment effects on the subjects' optimistic score, we also collected key covariates from the subjects in the form of a multiple choice answers. Covariates were chosen based on how likely they might influence the subjects on deciding their optimism level in the four prompts. For example, given the political nature of our chosen treatment, we collected the political preferences of the subjects along with a number of standard demographic factors such as gender, age and ethnicity. In addition to potentially increasing the fit of our models, the distributions of these variables can help explain whether or not our findings are generalizable beyond Mechanical Turks to the greater American population. 
 
 In order to derive more meaning, we re-categorized:
+
 * age into young adults (ages 18-34), middle-aged adults (ages 35-54), and older adults (aged 55 and older). We also re-categorized income into 
 * income into low ($10k-$39k), middle ($40-$79k), high($80k and above)
 * the highest level of education into having a high education degree (4 year degree, doctorate, professional degree) and not having one
@@ -375,7 +403,7 @@ d <- d %>% mutate(age = recode_factor(age,
                                      `18 - 24` = "young adult", `25 - 34` = "young adult",
                                      `35 - 44` = "middle-aged adult", `45 - 54` = "middle-aged adult",
                                      `55 - 64` = "old adult", `65 - 74` = "old adult", 
-                                     .ordered = TRUE))
+                                     .ordered = FALSE))
 d <- d %>% mutate(ethnicity = recode_factor(ethnicity, 
                                      `American Indian or Alaska Native` = "Native A.",
                                      `Asian` = "Asian",
@@ -392,13 +420,13 @@ d <- d %>% mutate(income = recode_factor(income,
                                      `$70,000 - $79,999` = "medium",
                                      `$80,000 - $89,999` = "high", `$90,000 - $99,999` = "high",
                                      `$100,000 - $149,999` = "high", `More than $150,000` = "high",
-                                     .ordered = TRUE))
+                                     .ordered = FALSE))
 d <- d %>% mutate(highest_education = recode_factor(highest_education,
                                      `Less than high school` = "No", `High school graduate` = "No",
                                      `Some college` = "No", `2 year degree` = "No", 
                                      `4 year degree` = "Yes", `Professional degree` = "Yes", 
                                      `Doctorate` = "Yes",
-                                     .ordered = TRUE))
+                                     .ordered = FALSE))
 d <- d %>% mutate(employment_status = recode_factor(employment_status,
                                      `Unemployed looking for work` = "Unemployed",
                                      `Unemployed looking for work,Student` = "Unemployed",
@@ -410,11 +438,14 @@ d <- d %>% mutate(employment_status = recode_factor(employment_status,
                                      `Employed part time` = "Employed",
                                      `Employed part time,Student` = "Employed",
                                      `Retired` = "Retired",
-                                     .ordered = TRUE))
+                                     .ordered = FALSE))
 
 # re-order ranking
-d$community <- ordered(d$community, c("Rural", "Suburban", "Urban"))
-d$marital_status <- ordered(d$marital_status, c("Never married", "Married", "Separated", "Divorced", "Widowed"))
+d$political_party <- relevel(d$political_party, "Middle/Independent")
+d$gender <- relevel(d$gender, "Male")
+d$community <- relevel(d$community, "Urban")
+d$income_group <- relevel(d$income, "medium")
+d$age_group <- relevel(d$age, "middle-aged adult")
 ```
 
 ### Age, gender, ethnicity
@@ -427,7 +458,7 @@ We first compare the basic demographic variables of our subjects: age, gender, e
 
 We might consider taking these covariates into consideration in our regression.
 
-```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
+```{r echo=FALSE, out.width="49%", fig.align="center"}
 # age
 plot.age.dist <- d %>% filter(., age != "") %>% 
                        mutate(age = recode_factor(age, `young adult` = "young", 
@@ -636,36 +667,54 @@ scale_fill_discrete(name = "Group type",
 theme(axis.text.x = element_text(angle=90))
 ```
 
-**TODO: add zip code, and geography**
+### Georgraphy
+
+
+map.df <- merge(states, x, by="region", all.x=T)
+map.df <- map.df[order(map.df$order),]
+gg <- ggplot(states)
+ggplot(map.df, aes(x=d$LocationLatitude, y=d$LocationLongitude))+
+  geom_polygon(aes(fill=Count))+
+  geom_path()+ 
+  scale_fill_gradientn(colours=rev(heat.colors(10)),na.value="grey90")+
+  coord_map()
+  
+  
+```{r echo=FALSE}
+usa_map <- map_data("state")
+gg <- ggplot(usa_map)
+```
+
+
+library(maps)
+library(ggplot2)
+world_map <- map_data("world")
+world_map <- world_map[world_map$region != "Antartica",]
+gg <- ggplot(world_map)
+gg <- gg + geom_map(data = world_map, 
+                    map = world_map, 
+                    aes(x=long, y=lat, map_id = region),
+                    fill = "white",
+                    color = "gray70")
+geomap1 <- unique(data, by=c("LocationLatitude", "LocationLongitude"))
+gg <- gg + geom_point(data = geomap1,
+                      aes(LocationLongitude, LocationLatitude),
+                      colour="red", 
+                      alpha = 1/10,
+                      size = 0.5)
+print(gg)
 
 ## Modeling choices
 
-To estimate any treatment effects on our subjects’ levels of optimism, we first examine the distributions of scores to verify whether ordinary least squares regression is appropriate and there are significant differences between the two groups. For each outcome measure, we see a high variance of responses, with the mean employment optimism at [5x%], retirement savings at [4X%], and cybersecurity risk at [7X%]; the education check has mean [4X]%. Within each question, the treatment and control distributions do not show significant differences as measured by Cohen’s d (all less than 0.2). Still, with some imbalances in the key covariates, OLS regression can control for these differences and estimate any treatment effects with stronger precision than a comparison of means.
-
-**TODO: fixed code**
+To estimate any treatment effects on our subjects’ levels of optimism, we first examine the distributions of scores to verify whether ordinary least squares regression is appropriate and there are significant differences between the two groups. For each outcome measure, we see a high variance of responses, with the mean employment optimism at [5x%], retirement savings at [4X%], and cybersecurity risk at [7X%]; the education check has mean [4X]%. Within each question, the treatment and control distributions do not show significant diffyerences as measured by Cohen’s d (all less than 0.2). Still, with some imbalances in the key covariates, OLS regression can control for these differences and estimate any treatment effects with stronger precision than a comparison of means.
 
 Because of the scale and wide variance of our outcome variables, we expect that OLS regression will produce the most efficient and unbiased estimates of any treatment effects, particularly after controlling for the key covariates explored above. After hypothesizing which variables will have relationships with the outcomes, we can select models for which those covariates contribute to the model fit, according to a log-likelihood ratio test. Similarly, we also test interaction terms to estimate heterogeneous treatment effects by political preference. While our intuition is that there could be significantly different emotional responses to the Trump reference from some Left/Liberal respondents, the preliminary analysis below on retirement optimism shows little effect, if maybe a positive one.
-
-**TODO: fixed code**
-
-```{r}
-# age - relationship looks curved
-ggplot(d , aes(x=factor(age), y=retirement_score, col = as.factor(treatment_ind))) + geom_boxplot() + xlab("Age") + ylab("Retirement Score") + labs(col = "treatment") + theme(axis.text.x = element_text(angle=75, hjust=1))
-
-# gender
-ggplot(d %>%
-         filter(., gender != ""), aes(x=factor(gender), y=retirement_score, col = as.factor(treatment_ind))) + geom_boxplot() + xlab("Gender") + ylab("Retirement Score") + labs(col = "treatment") + theme(axis.text.x = element_text(angle=75, hjust=1))
-
-#education - not a compelling candidate
-par(mar=c(10,3,1,1))
-ggplot(d , aes(x=factor(highest_education, highest_education_order), y=retirement_score, col = as.factor(treatment_ind))) + geom_boxplot() + xlab("Highest Education") + ylab("Retirement Score") + labs(col = "treatment") + theme(axis.text.x = element_text(angle=75, hjust=1))
-```
 
 # Result
 
 ## Employment
 
-For our respondents’ outlook on employment opportunities, we hypothesized that in addition to the treatment, the covariates representing political preference, income level, highest level of education, age, gender and community (rural, suburban and urban); these were informed both by intuition and our exploration of the data. After running a log-likelihood ratio test on the above regression, we found that only political preference, income, and community significantly improved the fit of the model. Our estimated treatment effect however, while consistently negative, is not statistically significant, and neither is the treatment effect on specific political preference categories (see Table 1). Unsurprisingly, the _Right/Republican_ preference has an estimated effect of over 15 points with a p-value less than 0.01, while high income also has a slight positive effect. More interesting, _Suburban_ (and to a lesser extent Rural) has a negative relative to _Urban_ respondents.
+For our respondents’ outlook on employment opportunities, we hypothesized that in addition to the treatment, the covariates representing political preference, income level, education, age, gender and community (rural, suburban and urban) would have effects; these were informed both by intuition and our exploration of the data above. After running a log-likelihood ratio test on the above regression, we found that only political preference, income, and community significantly improved the fit of the model. Our estimated treatment effect however, while consistently negative, is not statistically significant, and neither is the treatment effect on specific political preference categories (see Table 1). Unsurprisingly, the _Right/Republican_ preference has an estimated effect of over 15 points with a p-value less than 0.01, while high income also has a slight positive effect. More interesting, _Suburban_ (and to a lesser extent Rural) has a negative effect relative to _Urban_ respondents.
 
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 # political party and employment score boxplot
@@ -707,8 +756,10 @@ theme(axis.text.x = element_text(angle=75, hjust=1))
 
 ```{r echo=FALSE}
 lm.emp.1 <- lm(employment_score ~ treatment_ind, data = d)
-lm.emp.2 <- lm(employment_score ~ treatment_ind + political_party + income + age + community, data = d)
-lm.emp.3 <- lm(employment_score ~ treatment_ind + treatment_ind*political_party + income + age + community, data = d)
+lm.emp.2 <- lm(employment_score ~ treatment_ind + political_party + 
+                 income + age + community, data = d)
+lm.emp.3 <- lm(employment_score ~ treatment_ind + treatment_ind*political_party + 
+                 income + age + community, data = d)
 
 anova(lm.emp.3, test = "LRT")
 
@@ -720,7 +771,7 @@ cat("\\caption{OLS Regression Result}")
 cat("\\label{Table1}")
 cat("\\scalebox{.9}{")
 
-stargazer(lm.emp.1, lm.emp.2, lm.emp.3, title = "Employment Optimism", type = "latex",
+stargazer(lm.emp.1, lm.emp.2, lm.emp.3, title = "Employment Optimism", type = "text",
           column.labels = c("Treatment Only","With Covariates", "Political HTE"),
           dep.var.labels = "Employment Feeling Score (0 to 100)",
           star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE, float = FALSE)
@@ -732,7 +783,7 @@ cat("\\end{table}")
 
 ## Education
 
-While our prompt on the value of education toward preparing students for the workforce did not have a Trump treatment, the variable as expected was indistinguishable from zero (see Table 2). However, to our surprise, of our conjectured covariates that would contribute to the fit of the model, _Right/Republican_ had a positive effect relative to the other categories and moderately significant at the 95% confidence level. _Female_ also had a modest positive effect at a similar significance level. Interestingly, level of education did _not_ have a significant effect on the subjects’ estimated _value_ of education; similarly, level of income did not have a strong effect and did not improve the model.
+While our prompt on the value of education toward preparing students for the workforce did not have a Trump treatment, the variable as expected was indistinguishable from zero (see Table 2). However, to our surprise, of our conjectured covariates that would contribute to the fit of the model, _Right/Republican_ had a positive effect relative to the other categories and moderately significant at the 95% confidence level. _Female_ also had a modest positive effect at a similar significance level. Interestingly, the respondents’ level of education did _not_ have a significant effect on the subjects’ estimated _value_ of education; in other words, those who go to school longer do not rate education’s value on workforce preparedness any higher than those who do _not_ go to school as long. Similarly, level of income did not have a strong effect and did not improve the model.
 
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 # political party and education score boxplot
@@ -778,7 +829,7 @@ cat("\\caption{OLS Regression Result}")
 cat("\\label{Table2}")
 cat("\\scalebox{.9}{")
 
-stargazer(lm.ed.1, lm.ed.2, title = "Value on Education", type = "latex",
+stargazer(lm.ed.1, lm.ed.2, title = "Value on Education", type = "text",
           column.labels = c("Treatment Only","With Covariates"),
           dep.var.labels = "Education Feeling Score (0 to 100)",
           star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE)
@@ -790,7 +841,7 @@ cat("\\end{table}")
 
 ## Retirement
 
-Similarly to the estimated treatment effect on employment outlook, we see a slight positive but statistically insignificant effect on retirement savings optimism (see Table 3). Of the covariates, we again see that _Right/Republican_ is more optimistic, suggesting our topics are unfortunately more influenced by politics than we had hoped; correspondingly, _Left/Liberal_ are also significantly lower than their _Middle/Independent_ counterparts. More surprising, however, is that female subjects give a significantly lower level of optimism than males, which both high income and high level of education have modest positive effects. Like employment outlook, there appears to be no heterogeneous effects by political preference.
+Similarly to the estimated treatment effect on employment outlook, we see a slight positive but statistically insignificant effect on retirement savings optimism (see Table 3). Of the covariates, we again see that _Right/Republican_ is more optimistic, suggesting our topics are unfortunately more influenced by politics than we had hoped; correspondingly, _Left/Liberal_ respondents are also significantly lower than their _Middle/Independent_ counterparts. More surprising, however, is that female subjects give a significantly lower level of optimism than males (p<0.01), while both high income and high level of education have modest positive effects. Like employment outlook, there appears to be no heterogeneous treatment effects by political preference.
 
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 # political party and retirement score boxplot
@@ -854,7 +905,7 @@ cat("\\caption{OLS Regression Result}")
 cat("\\label{Table3}")
 cat("\\scalebox{.9}{")
 
-stargazer(lm.ret.1, lm.ret.2, lm.ret.3, title = "Retirement Optimism", type = "latex",
+stargazer(lm.ret.1, lm.ret.2, lm.ret.3, title = "Retirement Optimism", type = "text",
           column.labels = c("Treatment Only","With Covariates", "Political HTE"),
           dep.var.labels = "Retirement Feeling Score (0 to 100)",
           star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE, float = FALSE)
@@ -865,7 +916,7 @@ cat("\\end{table}")
 
 ## Cybersecurity
 
-Unlike the prior topics which are more economic and perhaps present in day-to-day life, the risk of cybersecurity produced some interesting relationships (see Table 4). While _Right/Republican_ has a very significant positive effect than all others (i.e. perceiving the risk to be higher), the perceive the risk to be _lower_ when in the treatment group, for a modest confidence level of 95%. Meanwhile, older respondents have a higher estimated score, while income, age and education did not improve the estimated model.
+Unlike the prior topics which are more economic and perhaps present in day-to-day life, the risk of cybersecurity produced some interesting relationships (see Table 4). While the covariate _Right/Republican_ has a significantly more positive effect than all others (i.e. perceiving the risk to be higher), they perceived the risk to be _lower_ when in the treatment group, a modest heterogeneous treatment effect at the 5% significance level. Meanwhile, older respondents have a higher estimated score, while income, age and education did not improve the estimated model.
 
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 # political party and cybersecurity score boxplot
@@ -924,7 +975,7 @@ cat("\\caption{OLS Regression Result}")
 cat("\\label{Table4}")
 cat("\\scalebox{.9}{")
 
-stargazer(lm.sec.1, lm.sec.2, lm.sec.3, title = "Cybersecurity Risk", type = "latex",
+stargazer(lm.sec.1, lm.sec.2, lm.sec.3, title = "Cybersecurity Risk", type = "text",
           column.labels = c("Treatment Only","With Covariates", "Political HTE"),
           dep.var.labels = "Cybersecurity Risk Feeling Score (0 to 100)",
           star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE)
