@@ -376,30 +376,8 @@ weighted most heavily by CCES are often the same categories
 that MTurk was best at attracting.
 
 
-
-
-
-
-
-
-
-
 ```{r, echo=FALSE}
-control.gender.percentage <- d %>% 
-  filter(., treatment_ind == 0 & gender != "") %>%
-  group_by(gender) %>%
-  summarize(freq = sum(n())) %>%
-  mutate(percentage = freq / sum(freq))
-treatment.gender.percentage <- d %>%
-  filter(., treatment_ind == 1 & gender != "") %>%
-  group_by(gender) %>%
-  summarize(freq = sum(n())) %>%
-  mutate(percentage = freq / sum(freq))
-grid.arrange(
-  format_table(control.gender.percentage, "Control"),
-  format_table(treatment.gender.percentage, "Treatment"),
-  nrow=1
-)
+prop.table(table(d$treatment_ind, d$gender) %>% .[,c("Female", "Male")], margin=2)
 ```
 
 ```{r echo=FALSE, fig5, fig.caption="Gender differences in control and treatment", out.width="80%", fig.align="center"}
@@ -435,9 +413,6 @@ grid.arrange(
   nrow=1
 )
 ```
-
- 75% of all respondents in CCES and MTurk
-were White
 
 ```{r echo=FALSE, out.width="80%", fig.align="center"}
 ggplot(d %>%
