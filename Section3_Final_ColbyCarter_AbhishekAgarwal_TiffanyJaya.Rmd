@@ -36,6 +36,9 @@ library(dplyr)
 library(knitr)
 library(geonames)
 library(ggplot2)
+library(grid)
+library(gridExtra)
+library(gtable)
 library(lmtest) 
 library(lubridate)
 library(png)
@@ -59,7 +62,22 @@ convert_fctr_to_numeric <- function(col) {
 convert_fctr_to_str <- function(col) {
   return(as.character(col))
 }
+format_table <- function(list, title) {
+  table <- tableGrob(list)
+  title <- textGrob(title, gp=gpar(fontsize=11))
+  table <- gtable_add_rows(
+    table, 
+    heights = grobHeight(title) + unit(5,"mm"),
+    pos = 0)
+  table <- gtable_add_grob(
+    table, 
+    title, 
+    1, 1, 1, ncol(table))
+  return(table)
+}
+```
 
+```{r, include=FALSE}
 # load the dataset
 d <- read.csv(file = "data/W241 Colby Carter, Tiffany Jaya, Abhishek Agarwal_April 22, 2018_15.32.csv",
               header = TRUE, 
@@ -347,24 +365,6 @@ All devices connected to the same router will share the same external IP address
 ## Measurement of variables: covariates
 
 
-
-```{r}
-# gender frequency in the control group
-(control.gender.freq <- d %>% 
-  group_by(gender) %>% 
-  summarize(freq = sum(n()))) 
-```
-
-```{r}
-# percentage of noncompliant in the control group
-control.gender.freq[which(control.gender.freq == ""),]$freq / sum(control.gender.freq$freq) * 100
-# percentage of female in the control group
-control.gender.freq[which(control.gender.freq == "Female"),]$freq / sum(control.gender.freq$freq) * 100
-# percentage of male in the control group
-control.gender.freq[which(control.gender.freq == "Male"),]$freq / sum(control.gender.freq$freq) * 100
-```
-
-
 We should have detailed information about what exact covariate imbalances exist
 
 
@@ -375,13 +375,34 @@ young individuals
 weighted most heavily by CCES are often the same categories
 that MTurk was best at attracting.
 
- 75% of all respondents in CCES and MTurk
-were White
 
 
 
 
-```{r echo=FALSE, fig5, fig.caption="Gender differences in control and treatment", ›out.width="80%", fig.align="center"}
+
+
+
+
+
+```{r, echo=FALSE}
+control.gender.percentage <- d %>% 
+  filter(., treatment_ind == 0 & gender != "") %>%
+  group_by(gender) %>%
+  summarize(freq = sum(n())) %>%
+  mutate(percentage = freq / sum(freq))
+treatment.gender.percentage <- d %>%
+  filter(., treatment_ind == 1 & gender != "") %>%
+  group_by(gender) %>%
+  summarize(freq = sum(n())) %>%
+  mutate(percentage = freq / sum(freq))
+grid.arrange(
+  format_table(control.gender.percentage, "Control"),
+  format_table(treatment.gender.percentage, "Treatment"),
+  nrow=1
+)
+```
+
+```{r echo=FALSE, fig5, fig.caption="Gender differences in control and treatment", out.width="80%", fig.align="center"}
 ggplot(d %>% 
          filter(., gender != "") %>% 
          group_by(gender, treatment_ind) %>% 
@@ -391,6 +412,32 @@ geom_bar(stat = 'identity', position = 'stack', show.legend=FALSE) +
 facet_grid(~ treatment_ind, labeller = as_labeller(c(`0`="Control", `1`="Treatment"))) + 
 aes(fill = as.factor(treatment_ind))
 ```
+
+
+```{r, echo=FALSE}
+prop.test(table(d$treatment_ind, d$gender) %>% .[,c("Female", "Male")], correct=FALSE)
+```
+
+```{r, echo=FALSE}
+control.ethnicity.percentage <- d %>% 
+  filter(., treatment_ind == 0 & ethnicity != "") %>%
+  group_by(ethnicity) %>%
+  summarize(freq = sum(n())) %>%
+  mutate(percentage = freq / sum(freq))
+treatment.ethnicity.percentage <- d %>%
+  filter(., treatment_ind == 1 & ethnicity != "") %>%
+  group_by(ethnicity) %>%
+  summarize(freq = sum(n())) %>%
+  mutate(percentage = freq / sum(freq))
+grid.arrange(
+  format_table(control.ethnicity.percentage, "Control"),
+  format_table(treatment.ethnicity.percentage, "Treatment"),
+  nrow=1
+)
+```
+
+ 75% of all respondents in CCES and MTurk
+were White
 
 ```{r echo=FALSE, out.width="80%", fig.align="center"}
 ggplot(d %>%
