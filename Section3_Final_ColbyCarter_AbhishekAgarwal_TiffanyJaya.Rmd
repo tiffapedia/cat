@@ -444,26 +444,26 @@ We first compare the basic demographic variables of our subjects: age, gender, e
 We might consider taking these covariates into consideration in our regression.
 
 ```{r echo=FALSE, out.width="49%", fig.align="center"}
-# age
-# plot.age.dist <- d %>% filter(., age != "missing") %>% 
-#                        mutate(age = recode_factor(age, `18-34` = "18-34", 
-#                                                        `35-54` = "35-54",
-#                                                        `over 54` = "over 54")) %>%
-#                        group_by(age, treatment_ind) %>% 
-#                        tally() %>%
-#                        ggplot(aes(x = age, y =  n, fill = factor(treatment_ind))) + 
-#                          geom_bar(stat = "identity", position = "dodge") + 
-#                          ggtitle("Age differences between control and treatment")  + 
-#                          scale_fill_discrete(name = "Group type", 
-#                                              breaks = c(0, 1), 
-#                                              labels = c("Control", "Treatment")) +
-#                          theme(axis.text.x = element_text(angle=90))
-# grid.arrange(
-#   plot.age.dist,
-#   tableGrob(table(d$treatment_ind, d$age) %>% 
-#                   .[,c("18-34", "35-54", "over 54")]),
-#   nrow = 1
-# )
+#age
+plot.age.dist <- d %>% filter(., age != "missing") %>%
+                       mutate(age = recode_factor(age, `18-34` = "18-34",
+                                                       `35-54` = "35-54",
+                                                       `over 54` = "over 54")) %>%
+                       group_by(age, treatment_ind) %>%
+                       tally() %>%
+                       ggplot(aes(x = age, y =  n, fill = factor(treatment_ind))) +
+                         geom_bar(stat = "identity", position = "dodge") +
+                         ggtitle("Age differences between control and treatment")  +
+                         scale_fill_discrete(name = "Group type",
+                                             breaks = c(0, 1),
+                                             labels = c("Control", "Treatment")) +
+                         theme(axis.text.x = element_text(angle=90))
+grid.arrange(
+  plot.age.dist,
+  tableGrob(table(d$treatment_ind, d$age) %>%
+                  .[,c("18-34", "35-54", "over 54")]),
+  nrow = 1
+)
 # gender
 plot.gender.dist <- d %>% filter(., gender != "missing") %>% 
                        group_by(gender, treatment_ind) %>% 
@@ -653,6 +653,8 @@ theme(axis.text.x = element_text(angle=90))
 ```
 
 ### Georgraphy
+
+
 
 
 map.df <- merge(states, x, by="region", all.x=T)
