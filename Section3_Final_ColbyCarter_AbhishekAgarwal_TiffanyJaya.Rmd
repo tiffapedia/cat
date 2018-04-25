@@ -66,7 +66,7 @@ convert_fctr_to_str <- function(col) {
 }
 ```
 
-```{r include=FALSE}
+```{r eval=FALSE, echo=FALSE}
 # load the dataset
 d <- read.csv(file = "data/W241 Colby Carter, Tiffany Jaya, Abhishek Agarwal_April 22, 2018_15.32.csv",
               header = TRUE, 
@@ -258,7 +258,7 @@ cols <- c("IPAddress", "ResponseId", "UserLanguage", "highest_education")
 d[,cols] <- lapply(d[,cols], convert_fctr_to_str)
 
 # get country information based on latlong
-options(geonamesUsername="sullivannicole") # login
+options(geonamesUsername="carlosrios") # login
 country_names <- mapply(
   function(lat, long) {
     suppressWarnings(try(GNcountryCode(lat, long)$countryName, silent = TRUE))
@@ -266,7 +266,11 @@ country_names <- mapply(
 d$country <- country_names
 
 # save a copy of the original dataset
-data <- d
+write.csv(d, file = "./data/original_data.csv")
+```
+
+```{r include=FALSE}
+d <- read.csv(file = "./data/original_data.csv")
 
 # filter for subjects who finish the survey 100%
 d <- d %>% filter(., Progress == 100)
@@ -291,9 +295,6 @@ d$education_score <- ifelse(is.na(d$treatment_education), d$control_education, d
 d$retirement_score <- ifelse(is.na(d$treatment_retirement), d$control_retirement, d$treatment_retirement)
 d$cybersecurity_score <- ifelse(is.na(d$treatment_cybersecurity), d$control_cybersecurity, d$treatment_cybersecurity)
 ```
-
-
-
 
 ## Research Design
 
@@ -342,8 +343,7 @@ include_graphics(img_path.random_assignment)
 Unfortunately, even though we have requested Mechanical Turk to select subjects only in the United States, we still receive users whose country of origin is not from the United States. Out of 688 subjects, 580 reside in the United States and 108 reside outside of the United States. 
 
 
-```{r, echo=FALSE}
-
+```{r eval=FALSE, echo=FALSE}
 m <- matrix(c(data %>% filter(., country == "United States") %>% count(.), 
               data %>% filter(., country != "United States") %>% count(.)
               ), 
@@ -355,7 +355,7 @@ knitr::kable(m)
 In addition, we filtered out subjects who did not complete the survey (including those who did not provide their consent) as well as subjects who took the survey more than once, which left us with 557 subjects: 262 in control and 295 in treatment.   
 
 
-```{r, echo=FALSE}
+```{r eval=FALSE, echo=FALSE}
 m <- matrix(c(d %>% filter(., treatment_ind == 0) %>% count(.), 
               d %>% filter(., treatment_ind == 1) %>% count(.),
               d %>% count(.)
@@ -445,13 +445,14 @@ We first compare the basic demographic variables of our subjects: age, gender, e
 
 We might consider taking these covariates into consideration in our regression.
 
-```{r echo=FALSE, out.width="49%", fig.align="center"}
-par(mfrow=c(2,2))
+```{r echo=FALSE}
+table(d$treatment_ind, d$age) %>%
+                  .[,c("18-34", "35-54", "over 54")]
+```
+
+```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 #age
 plot.age.dist <- d %>% filter(., age != "missing") %>%
-                       mutate(age = recode_factor(age, `18-34` = "18-34",
-                                                       `35-54` = "35-54",
-                                                       `over 54` = "over 54")) %>%
                        group_by(age, treatment_ind) %>%
                        tally() %>%
                        ggplot(aes(x = age, y =  n, fill = factor(treatment_ind))) +
@@ -499,9 +500,7 @@ grid.arrange(
   tableGrob(table(d$treatment_ind, d$ethnicity) %>% .[,c("Native A.", "Asian", "Black", "Other", "White")]),
   nrow = 1
 )
-```
 
-```{r echo=FALSE, out.width="49%", fig.align="center"}
 ggplot(d %>%
          filter(., gender != "missing") %>%
          group_by(age, ethnicity, gender) %>% 
@@ -569,7 +568,6 @@ Subjects who have high education tend to be employed with high income. It is int
 Income and completion of a high education might be interesting covariates to include although employment status might not since a large majority of subjects are employed full-time. It will not be as helpful to add as a covariate to the regression.
 
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
-par(mfrow=c(1,2))
 ggplot(d %>% filter(., income != "" & income != "rather not say" & employment_status != "") %>%
          group_by(highest_education, employment_status, income) %>% 
          tally(), 
@@ -607,7 +605,7 @@ theme(axis.text.x = element_text(angle=90))
 
 We also ask subjects question regarding their internet usage. Unfortunately, these covariates do not appear helpful since the majority of the subjects use internet daily and pay for their internet themselves.
 
-```{r, include = FALSE, echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
+```{r eval=FALSE, echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 # internet from home
 d %>% filter(., internet_from_home != "") %>% 
       group_by(internet_from_home, treatment_ind) %>% 
@@ -659,8 +657,9 @@ theme(axis.text.x = element_text(angle=90))
 
 ### Georgraphy
 
+Subjects come from a broad range of states, although they are concentrated predominantly on major cities. 
 
-```{r echo=FALSE}
+```{r echo=FALSE, warning=FALSE, out.width="49%", fig.align="center"}
 library(ggmap)
 map<-get_map(location='united states', zoom=4, maptype = "terrain",
              source='google',color='color')
@@ -757,8 +756,6 @@ lm.emp.4 <- lm(employment_score ~ treatment_ind + political_party +
 
 #anova(lm.emp.3, test = "LRT")
 
-# SWITCH TO "LATEX" FOR FINAL OUTPUT
-
 cat("\\begin{table}[!htbp]")
 cat("\\centering")
 cat("\\caption{OLS Regression Result}")
@@ -816,13 +813,6 @@ lm.ed.2 <- lm(education_score ~ treatment_ind + highest_education + political_pa
 
 #anova(lm.ed.2, test = "LRT")
 
-# SWITCH TO "LATEX" FOR FINAL OUTPUT
-
-cat("\\begin{table}[!htbp]")
-cat("\\centering")
-cat("\\caption{OLS Regression Result}")
-cat("\\label{Table2}")
-cat("\\scalebox{.9}{")
 
 stargazer(lm.ed.1, lm.ed.2, title = "Value on Education", type = "latex",
           column.labels = c("Treatment Only","With Covariates"),
@@ -830,9 +820,6 @@ stargazer(lm.ed.1, lm.ed.2, title = "Value on Education", type = "latex",
           omit = c("political_partymissing", "gendermissing"),
           star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE)
 
-
-cat("}") # for the end of the scalebox
-cat("\\end{table}")
 ```
 
 ## Retirement
@@ -901,6 +888,7 @@ cat("\\caption{OLS Regression Result}")
 cat("\\label{Table3}")
 cat("\\scalebox{.9}{")
 
+
 stargazer(lm.ret.1, lm.ret.2, lm.ret.3, title = "Retirement Optimism", type = "latex",
           column.labels = c("Treatment Only","With Covariates", "Political HTE"),
           dep.var.labels = "Retirement Feeling Score (0 to 100)",
@@ -963,23 +951,12 @@ lm.sec.3 <- lm(cybersecurity_score ~ treatment_ind + treatment_ind*political_par
 
 #anova(lm.sec.3, test="LRT")
 
-
-# SWITCH TO "LATEX" FOR FINAL OUTPUT
-
-cat("\\begin{table}[!htbp]")
-cat("\\centering")
-cat("\\caption{OLS Regression Result}")
-cat("\\label{Table4}")
-cat("\\scalebox{.9}{")
-
 stargazer(lm.sec.1, lm.sec.2, lm.sec.3, title = "Cybersecurity Risk", type = "latex",
           column.labels = c("Treatment Only","With Covariates", "Political HTE"),
           dep.var.labels = "Cybersecurity Risk Feeling Score (0 to 100)",
           omit = c("political_partymissing", "political_partymissing"),
           star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE)
 
-cat("}") # for the end of the scalebox
-cat("\\end{table}")
 ```
 
 
