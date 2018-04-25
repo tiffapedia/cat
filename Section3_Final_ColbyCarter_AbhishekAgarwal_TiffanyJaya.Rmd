@@ -341,11 +341,9 @@ include_graphics(img_path.random_assignment)
 
 Unfortunately, even though we have requested Mechanical Turk to select subjects only in the United States, we still receive users whose country of origin is not from the United States. Out of 688 subjects, 580 reside in the United States and 108 reside outside of the United States. 
 
-<<<<<<< HEAD
-```{r, include = FALSE,  echo=FALSE}
-=======
-```{r, include=FALSE}
->>>>>>> 566bef806fea6e124c2f366c62bab5568bb6d21b
+
+```{r, echo=FALSE}
+
 m <- matrix(c(data %>% filter(., country == "United States") %>% count(.), 
               data %>% filter(., country != "United States") %>% count(.)
               ), 
@@ -356,11 +354,8 @@ knitr::kable(m)
 
 In addition, we filtered out subjects who did not complete the survey (including those who did not provide their consent) as well as subjects who took the survey more than once, which left us with 557 subjects: 262 in control and 295 in treatment.   
 
-<<<<<<< HEAD
-```{r, include=FALSE, echo=FALSE}
-=======
-```{r, include=FALSE}
->>>>>>> 566bef806fea6e124c2f366c62bab5568bb6d21b
+
+```{r, echo=FALSE}
 m <- matrix(c(d %>% filter(., treatment_ind == 0) %>% count(.), 
               d %>% filter(., treatment_ind == 1) %>% count(.),
               d %>% count(.)
@@ -378,13 +373,12 @@ To increase the precision of our estimated treatment effects on the subjects' op
 
 In order to derive more meaning, we re-categorized:
 
-* age into young adults (ages 18-34), middle-aged adults (ages 35-54), and older adults (aged 55 and older). We also re-categorized income into 
-* income into low ($10k-$39k), middle ($40-$79k), high($80k and above)
+* age into young adults (ages 18-34), middle-aged adults (ages 35-54), and older adults (aged 55 and older); 
+* income into low ($10k-$39k), middle ($40-$79k), high($80k and above);
 * the highest level of education into having a high education degree (4 year degree, doctorate, professional degree) and not having one
 
 ```{r include=FALSE}
 # re-categorize age, ethnicity
-library(plyr)
 d <- d %>% mutate(age = recode_factor(age, 
                                      `18 - 24` = "18-34", `25 - 34` = "18-34",
                                      `35 - 44` = "35-54", `45 - 54` = "35-54",
@@ -452,6 +446,7 @@ We first compare the basic demographic variables of our subjects: age, gender, e
 We might consider taking these covariates into consideration in our regression.
 
 ```{r echo=FALSE, out.width="49%", fig.align="center"}
+par(mfrow=c(2,2))
 #age
 plot.age.dist <- d %>% filter(., age != "missing") %>%
                        mutate(age = recode_factor(age, `18-34` = "18-34",
@@ -489,21 +484,21 @@ grid.arrange(
   nrow = 1
 )
 # ethnicity
-# plot.ethnicity.dist <- d %>% filter(., ethnicity != "") %>% 
-#                        group_by(ethnicity, treatment_ind) %>% 
-#                        tally() %>%
-#                        ggplot(aes(x = ethnicity, y =  n, fill = factor(treatment_ind))) + 
-#                          geom_bar(stat = "identity", position = "dodge") + 
-#                          ggtitle("Ethnicity differences between control and treatment")  + 
-#                          scale_fill_discrete(name = "Group type", 
-#                                              breaks = c(0, 1), 
-#                                              labels = c("Control", "Treatment")) + 
-#                          theme(axis.text.x = element_text(angle=90))
-# grid.arrange(
-#   plot.ethnicity.dist,
-#   tableGrob(table(d$treatment_ind, d$ethnicity) %>% .[,c("Native A.", "Asian", "Black", "Other", "White")]),
-#   nrow = 1
-# )
+plot.ethnicity.dist <- d %>% filter(., ethnicity != "") %>%
+                       group_by(ethnicity, treatment_ind) %>%
+                       tally() %>%
+                       ggplot(aes(x = ethnicity, y =  n, fill = factor(treatment_ind))) +
+                         geom_bar(stat = "identity", position = "dodge") +
+                         ggtitle("Ethnicity differences between control and treatment")  +
+                         scale_fill_discrete(name = "Group type",
+                                             breaks = c(0, 1),
+                                             labels = c("Control", "Treatment")) +
+                         theme(axis.text.x = element_text(angle=90))
+grid.arrange(
+  plot.ethnicity.dist,
+  tableGrob(table(d$treatment_ind, d$ethnicity) %>% .[,c("Native A.", "Asian", "Black", "Other", "White")]),
+  nrow = 1
+)
 ```
 
 ```{r echo=FALSE, out.width="49%", fig.align="center"}
@@ -522,16 +517,17 @@ ggtitle("Gender and age composition for different racial categories")
 There are in general more Democrats than Republicans taking the survey in the young to middle-aged adult group. It was interesting to note that those who did not vote tend to affiliate themselves with the Democrat and Independent ideology. We can only assume these individuals are immigrants but further research is required for this statement to be validated. In addition, a higher percentage of Democrats lived in urban communities compared to Republicans, but again, the majority of those living in urban communities are young adults and they are a large part of our test subjects. For this reason, we decide to take into consideration the political_party and age as key covariates in our regression because there is a high proportion of test takers who are young adults; also, we assumed that political party play a key role in the level of optimism on the treatment effect.
 
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
+# par(mfrow=c(1,2))
 # ggplot(d %>%
 #          filter(., political_party != "") %>%
-#          group_by(can_vote, age, political_party) %>% 
-#          tally(), 
+#          group_by(can_vote, age, political_party) %>%
+#          tally(),
 # aes(x = factor(can_vote), y = n, fill = factor(age))) +
 # scale_fill_manual(values = c("light green", "green", "dark green"),
-#                   name = "Political Party?") + 
-# geom_bar(stat = 'identity', position = 'stack') + facet_grid(~ political_party) + 
-# theme(axis.text.x = element_text(angle=90, hjust=1)) + 
-# ggtitle("Age and ability to vote composition for different political parties") 
+#                   name = "Political Party?") +
+# geom_bar(stat = 'identity', position = 'stack') + facet_grid(~ political_party) +
+# theme(axis.text.x = element_text(angle=90, hjust=1)) +
+# ggtitle("Age and ability to vote composition for different political parties")
 
 
 ggplot(d %>%
@@ -573,6 +569,7 @@ Subjects who have high education tend to be employed with high income. It is int
 Income and completion of a high education might be interesting covariates to include although employment status might not since a large majority of subjects are employed full-time. It will not be as helpful to add as a covariate to the regression.
 
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
+par(mfrow=c(1,2))
 ggplot(d %>% filter(., income != "" & income != "rather not say" & employment_status != "") %>%
          group_by(highest_education, employment_status, income) %>% 
          tally(), 
@@ -696,8 +693,6 @@ plot_scores(d, d$cybersecurity_score, "Cybersecurity Score")
 ```
 
 
-
-<<<<<<< HEAD
 To estimate any treatment effects on our subjects' levels of optimism, we first examine the distributions of scores to verify whether ordinary least squares regression is appropriate and there are significant differences between the two groups. For each outcome measure, we see a high variance of responses, with the mean employment optimism at [5x%], retirement savings at [4X%], and cybersecurity risk at [7X%]; the education check has mean [4X]%. Within each question, the treatment and control distributions do not show significant diffyerences as measured by Cohen's d (all less than 0.2). Still, with some imbalances in the key covariates, OLS regression can control for these differences and estimate any treatment effects with stronger precision than a comparison of means.
 
 
@@ -717,10 +712,6 @@ plot_scores(d, d$retirement_score, "Retirement Score")
 plot_scores(d, d$cybersecurity_score, "Cybersecurity Score")
 ```
 
-
-
-=======
->>>>>>> 566bef806fea6e124c2f366c62bab5568bb6d21b
 
 Because of the scale and wide variance of our outcome variables, we expect that OLS regression will produce the most efficient and unbiased estimates of any treatment effects, particularly after controlling for the key covariates explored above. After hypothesizing which variables will have relationships with the outcomes, we can select models for which those covariates contribute to the model fit, according to a log-likelihood ratio test. Similarly, we also test interaction terms to estimate heterogeneous treatment effects by political preference. While our intuition is that there could be significantly different emotional responses to the Trump reference from some Left/Liberal respondents, the preliminary analysis below on retirement optimism shows little effect, if maybe a positive one.
 
@@ -787,7 +778,7 @@ cat("\\caption{OLS Regression Result}")
 cat("\\label{Table1}")
 cat("\\scalebox{.9}{")
 
-stargazer(lm.emp.1, lm.emp.2, lm.emp.3, title = "Employment Optimism", type = "text",
+stargazer(lm.emp.1, lm.emp.2, lm.emp.3, title = "Employment Optimism", type = "latex",
           column.labels = c("Treatment Only","With Covariates", "Political HTE"),
           dep.var.labels = "Employment Feeling Score (0 to 100)",
           omit = c("political_partymissing", "income_groupmissing", "communitymissing", "treatment_ind:political_partymissing"),
@@ -846,7 +837,7 @@ cat("\\caption{OLS Regression Result}")
 cat("\\label{Table2}")
 cat("\\scalebox{.9}{")
 
-stargazer(lm.ed.1, lm.ed.2, title = "Value on Education", type = "text",
+stargazer(lm.ed.1, lm.ed.2, title = "Value on Education", type = "latex",
           column.labels = c("Treatment Only","With Covariates"),
           dep.var.labels = "Education Feeling Score (0 to 100)",
           omit = c("political_partymissing", "gendermissing"),
@@ -923,7 +914,7 @@ cat("\\caption{OLS Regression Result}")
 cat("\\label{Table3}")
 cat("\\scalebox{.9}{")
 
-stargazer(lm.ret.1, lm.ret.2, lm.ret.3, title = "Retirement Optimism", type = "text",
+stargazer(lm.ret.1, lm.ret.2, lm.ret.3, title = "Retirement Optimism", type = "latex",
           column.labels = c("Treatment Only","With Covariates", "Political HTE"),
           dep.var.labels = "Retirement Feeling Score (0 to 100)",
           omit = c("political_partymissing", "gendermissing", "income_groupmissing"),
@@ -994,7 +985,7 @@ cat("\\caption{OLS Regression Result}")
 cat("\\label{Table4}")
 cat("\\scalebox{.9}{")
 
-stargazer(lm.sec.1, lm.sec.2, lm.sec.3, title = "Cybersecurity Risk", type = "text",
+stargazer(lm.sec.1, lm.sec.2, lm.sec.3, title = "Cybersecurity Risk", type = "latex",
           column.labels = c("Treatment Only","With Covariates", "Political HTE"),
           dep.var.labels = "Cybersecurity Risk Feeling Score (0 to 100)",
           omit = c("political_partymissing", "political_partymissing"),
