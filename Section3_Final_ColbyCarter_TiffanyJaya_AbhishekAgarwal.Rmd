@@ -1,7 +1,7 @@
 ---
 title: "Do Trump Reminders Cause Cognitive Dissonance?"
 subtitle: "Experiments and Causality"
-author: "Colby Carter, Abhishek Agarwal, Tiffany Jaya"
+author: "Colby Carter, Tiffany Jaya, Abhishek Agarwal"
 date: \today
 output: 
   pdf_document: default
@@ -657,7 +657,7 @@ theme(axis.text.x = element_text(angle=90))
 
 ### Georgraphy
 
-Subjects come from a broad range of states, although they are concentrated predominantly on major cities. 
+Subjects come from a broad range of states. 
 
 ```{r echo=FALSE, warning=FALSE, out.width="49%", fig.align="center"}
 library(ggmap)
@@ -745,34 +745,6 @@ labs(col = "treatment") +
 theme(axis.text.x = element_text(angle=75, hjust=1))
 ```
 
-```{r, results='asis', echo=FALSE}
-lm.emp.1 <- lm(employment_score ~ treatment_ind, data = d)
-lm.emp.2 <- lm(employment_score ~ treatment_ind + political_party + 
-                 income_group + age + community, data = d)
-lm.emp.3 <- lm(employment_score ~ treatment_ind + treatment_ind*political_party + 
-                 income_group + age + community, data = d)
-lm.emp.4 <- lm(employment_score ~ treatment_ind + political_party + 
-                 income_group + age + treatment_ind*community, data = d)
-
-#anova(lm.emp.3, test = "LRT")
-
-cat("\\begin{table}[!htbp]")
-cat("\\centering")
-cat("\\caption{OLS Regression Result}")
-cat("\\label{Table1}")
-cat("\\scalebox{.9}{")
-
-stargazer(lm.emp.1, lm.emp.2, lm.emp.3, title = "Employment Optimism", type = "latex",
-          column.labels = c("Treatment Only","With Covariates", "Political HTE"),
-          dep.var.labels = "Employment Feeling Score (0 to 100)",
-          omit = c("political_partymissing", "income_groupmissing", "communitymissing", "treatment_ind:political_partymissing"),
-          star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE, float = FALSE)
-
-cat("}") # for the end of the scalebox
-cat("\\end{table}")
-```
-
-
 ## Education
 
 While our prompt on the value of education toward preparing students for the workforce did not have a Trump treatment, the variable as expected was indistinguishable from zero (see Table 2). However, to our surprise, of our conjectured covariates that would contribute to the fit of the model, _Right/Republican_ had a modest positive effect relative to the other categories and moderately significant at the 95% confidence level. _Female_ also had a modest positive effect at a similar significance level. Interestingly, the respondents' level of education did not have a significant effect on the subjects' estimated value of education; in other words, those who go to school longer do not rate education's value on workforce preparedness any higher than those who do not go to school as long. Similarly, level of income did not have a strong effect and did not improve the model.
@@ -804,22 +776,6 @@ theme(axis.text.x = element_text(angle=75, hjust=1))
 # ylab("Education Score") +
 # labs(col = "treatment") + 
 # theme(axis.text.x = element_text(angle=75, hjust=1))
-```
-
-```{r, results='asis', echo=FALSE}
-lm.ed.1 <- lm(education_score ~ treatment_ind, data = d)
-lm.ed.2 <- lm(education_score ~ treatment_ind + highest_education + political_party + gender + income_group,
-              data = d)
-
-#anova(lm.ed.2, test = "LRT")
-
-
-stargazer(lm.ed.1, lm.ed.2, title = "Value on Education", type = "latex",
-          column.labels = c("Treatment Only","With Covariates"),
-          dep.var.labels = "Education Feeling Score (0 to 100)",
-          omit = c("political_partymissing", "gendermissing"),
-          star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE)
-
 ```
 
 ## Retirement
@@ -873,32 +829,6 @@ theme(axis.text.x = element_text(angle=75, hjust=1))
 # theme(axis.text.x = element_text(angle=75, hjust=1))
 ```
 
-```{r, results='asis', echo=FALSE}
-lm.ret.1 <- lm(retirement_score ~ treatment_ind, data = d)
-lm.ret.2 <- lm(retirement_score ~ treatment_ind + 
-                 political_party + gender + age + income_group + highest_education , data = d)
-lm.ret.3 <- lm(retirement_score ~ treatment_ind + 
-                 treatment_ind*political_party + gender + age + income_group + highest_education, data = d)
-
-#anova(lm.ret.3, test="LRT")
-
-cat("\\begin{table}[!htbp]")
-cat("\\centering")
-cat("\\caption{OLS Regression Result}")
-cat("\\label{Table3}")
-cat("\\scalebox{.9}{")
-
-
-stargazer(lm.ret.1, lm.ret.2, lm.ret.3, title = "Retirement Optimism", type = "latex",
-          column.labels = c("Treatment Only","With Covariates", "Political HTE"),
-          dep.var.labels = "Retirement Feeling Score (0 to 100)",
-          omit = c("political_partymissing", "gendermissing", "income_groupmissing"),
-          star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE, float = FALSE)
-
-cat("}") # for the end of the scalebox
-cat("\\end{table}")
-```
-
 ## Cybersecurity
 
 Unlike the prior topics which are more economic and perhaps present in day-to-day life, the cybersecurity risk outcome is likely influenced by one's consumption of various news sources, with again no clear effect from our Trump treatment (see Table 4). The primary drivers of the risk score come from respondents identified as _Right/Republican_ and over the age of 54 (p<0.001). Meanwhile income, gender and education did not improve the estimated model.
@@ -943,7 +873,93 @@ Unlike the prior topics which are more economic and perhaps present in day-to-da
 # theme(axis.text.x = element_text(angle=75, hjust=1))
 ```
 
+# Conclusion
+
+While we are relieved to find little evidence that a reminder of Trump affects important measures optimism within our sample, we consider several possible explanations and limitations of the study. First, we hope that there is no true treatment effect because despite what is portrayed across political media, most respondents are not affected when it comes to the more important priorities in life; for example, few in the political media expected an election day win for Trump. Along those lines, we wonder whether there has been any temporal shift in the roughly year and a half since the peak of election campaigning; perhaps individuals who were once emotionally triggered by Trump have regressed to their mean levels of optimism. Alternatively, we expect that there are still segments of the population who would have a heterogeneous treatment effect, but that our collected subject attributes do not identify that segment; because of the diverse preferences of our respondents, estimating the average treatment effect may not be a strong measure. Or, more likely, those who are most affected by Trump are highly cognizant of his presidency all the time, and have thus adjusted their optimism levels accordingly. Lastly, our survey is limited to Mechanical Turks who may not be representative of the larger American population: while MTurk tends to represent the younger people well [4] and our sample appears to reflect population proportions across several covariates, it still seems likely that a particular type of individual is drawn to survey-taking through the platform and may be inherently different than the rest of the population.
+
+With those conjectures in mind, we recognize the limitations this experimental design. For example, while we took steps to force a minimum time spent on a given prompt, we could not enforce users to actually read and process the content. Without innocuous attention checks for the Trump reference, which would likely decrease our sample size and statistical power, we cannot know how many of our roughly 600 respondents processed his relation. There are also likely a number of attributes that drive our respondents' scores and reactions to the Trump reference, many of which would be a challenge to request in a simple survey, such as positions on deeply-divided moral issues. Relatedly, we find it disappointing that so few topics--notwithstanding our chosen topics for this survey--are devoid of political differences but still related to Trump. However, we are also relieved to see a sizeable portion of our respondent group continues to be strongly optimistic about some of the more important parts of their lives.
+
 ```{r, results='asis', echo=FALSE}
+# table 1: employment
+lm.emp.1 <- lm(employment_score ~ treatment_ind, data = d)
+lm.emp.2 <- lm(employment_score ~ treatment_ind + political_party + 
+                 income_group + age + community, data = d)
+lm.emp.3 <- lm(employment_score ~ treatment_ind + treatment_ind*political_party + 
+                 income_group + age + community, data = d)
+lm.emp.4 <- lm(employment_score ~ treatment_ind + political_party + 
+                 income_group + age + treatment_ind*community, data = d)
+
+#anova(lm.emp.3, test = "LRT")
+
+cat("\\begin{table}[!htbp]")
+cat("\\centering")
+cat("\\caption{OLS Regression Result}")
+cat("\\label{Table1}")
+cat("\\scalebox{.9}{")
+
+stargazer(lm.emp.1, lm.emp.2, lm.emp.3, title = "Employment Optimism", type = "latex",
+          column.labels = c("Treatment Only","With Covariates", "Political HTE"),
+          dep.var.labels = "Employment Feeling Score (0 to 100)",
+          omit = c("political_partymissing", "income_groupmissing", "communitymissing", "treatment_ind:political_partymissing"),
+          star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE, float = FALSE)
+
+cat("}") # for the end of the scalebox
+cat("\\end{table}")
+```
+
+```{r, results='asis', echo=FALSE}
+# table 2: education
+lm.ed.1 <- lm(education_score ~ treatment_ind, data = d)
+lm.ed.2 <- lm(education_score ~ treatment_ind + highest_education + political_party + gender + income_group,
+              data = d)
+
+#anova(lm.ed.2, test = "LRT")
+
+cat("\\begin{table}[!htbp]")
+cat("\\centering")
+cat("\\caption{OLS Regression Result}")
+cat("\\label{Table1}")
+cat("\\scalebox{.9}{")
+
+stargazer(lm.ed.1, lm.ed.2, title = "Value on Education", type = "latex",
+          column.labels = c("Treatment Only","With Covariates"),
+          dep.var.labels = "Education Feeling Score (0 to 100)",
+          omit = c("political_partymissing", "gendermissing"),
+          star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE, float = FALSE)
+
+cat("}") # for the end of the scalebox
+cat("\\end{table}")
+```
+
+```{r, results='asis', echo=FALSE}
+# table 3: retirement
+lm.ret.1 <- lm(retirement_score ~ treatment_ind, data = d)
+lm.ret.2 <- lm(retirement_score ~ treatment_ind + 
+                 political_party + gender + age + income_group + highest_education , data = d)
+lm.ret.3 <- lm(retirement_score ~ treatment_ind + 
+                 treatment_ind*political_party + gender + age + income_group + highest_education, data = d)
+
+#anova(lm.ret.3, test="LRT")
+
+cat("\\begin{table}[!htbp]")
+cat("\\centering")
+cat("\\caption{OLS Regression Result}")
+cat("\\label{Table3}")
+cat("\\scalebox{.9}{")
+
+
+stargazer(lm.ret.1, lm.ret.2, lm.ret.3, title = "Retirement Optimism", type = "latex",
+          column.labels = c("Treatment Only","With Covariates", "Political HTE"),
+          dep.var.labels = "Retirement Feeling Score (0 to 100)",
+          omit = c("political_partymissing", "gendermissing", "income_groupmissing"),
+          star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE, float = FALSE)
+
+cat("}") # for the end of the scalebox
+cat("\\end{table}")
+```
+
+```{r, results='asis', echo=FALSE}
+# table 4: cybersecurity
 lm.sec.1 <- lm(cybersecurity_score ~ treatment_ind, data = d)
 lm.sec.2 <- lm(cybersecurity_score ~ treatment_ind + political_party + age, data = d)
 lm.sec.3 <- lm(cybersecurity_score ~ treatment_ind + treatment_ind*political_party + age, data = d)
@@ -967,16 +983,6 @@ cat("}") # for the end of the scalebox
 cat("\\end{table}")
 
 ```
-
-
-
-# Conclusion
-
-
-While we are relieved to find little evidence that a reminder of Trump affects important measures optimism within our sample, we consider several possible explanations and limitations of the study. First, we hope that there is no true treatment effect because despite what is portrayed across political media, most respondents are not affected when it comes to the more important priorities in life; for example, few in the political media expected an election day win for Trump. Along those lines, we wonder whether there has been any temporal shift in the roughly year and a half since the peak of election campaigning; perhaps individuals who were once emotionally triggered by Trump have regressed to their mean levels of optimism. Alternatively, we expect that there are still segments of the population who would have a heterogeneous treatment effect, but that our collected subject attributes do not identify that segment; because of the diverse preferences of our respondents, estimating the average treatment effect may not be a strong measure. Or, more likely, those who are most affected by Trump are highly cognizant of his presidency all the time, and have thus adjusted their optimism levels accordingly. Lastly, our survey is limited to Mechanical Turks who may not be representative of the larger American population: while MTurk tends to represent the younger people well [4] and our sample appears to reflect population proportions across several covariates, it still seems likely that a particular type of individual is drawn to survey-taking through the platform and may be inherently different than the rest of the population.
-
-
-With those conjectures in mind, we recognize the limitations this experimental design. For example, while we took steps to force a minimum time spent on a given prompt, we could not enforce users to actually read and process the content. Without innocuous attention checks for the Trump reference, which would likely decrease our sample size and statistical power, we cannot know how many of our roughly 600 respondents processed his relation. There are also likely a number of attributes that drive our respondents' scores and reactions to the Trump reference, many of which would be a challenge to request in a simple survey, such as positions on deeply-divided moral issues. Relatedly, we find it disappointing that so few topics--notwithstanding our chosen topics for this survey--are devoid of political differences but still related to Trump. However, we are also relieved to see a sizeable portion of our respondent group continues to be strongly optimistic about some of the more important parts of their lives.
 
 \pagebreak
 
