@@ -673,7 +673,16 @@ ggmap(map) + geom_point(
 
 ## Modeling choices
 
-To estimate any treatment effects on our subjects' levels of optimism, we first examine the distributions of scores to verify whether ordinary least squares regression is appropriate and there are significant differences between the two groups. For each outcome measure, we see a high variance of responses, with the mean employment optimism at [5x%], retirement savings at [4X%], and cybersecurity risk at [7X%]; the education check has mean [4X]%. Within each question, the treatment and control distributions do not show significant diffyerences as measured by Cohen's d (all less than 0.2). Still, with some imbalances in the key covariates, OLS regression can control for these differences and estimate any treatment effects with stronger precision than a comparison of means.
+To estimate any treatment effects on our subjects' levels of optimism, we first examine the distributions of scores to verify whether ordinary least squares regression is appropriate and there are significant differences between the two groups. For each outcome measure, we see a high variance of responses, with the mean employment optimism at [5x], retirement savings at [4X], and cybersecurity risk at [7X]; the education check has mean [4X]. Within each question, the treatment and control distributions do not show significant diffyerences as measured by Cohen's d (all less than 0.2). Still, with some imbalances in the key covariates, OLS regression can control for these differences and estimate any treatment effects with stronger precision than a comparison of means.
+
+
+```{r, include=FALSE}
+mean(d$employment_score, na.rm = T)
+mean(d$education_score, na.rm = T)
+mean(d$retirement_score, na.rm = T)
+mean(d$cybersecurity_score, na.rm = T)
+```
+
 
 
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
