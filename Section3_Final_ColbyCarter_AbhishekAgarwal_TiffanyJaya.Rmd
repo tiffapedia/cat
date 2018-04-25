@@ -292,30 +292,7 @@ d$retirement_score <- ifelse(is.na(d$treatment_retirement), d$control_retirement
 d$cybersecurity_score <- ifelse(is.na(d$treatment_cybersecurity), d$control_cybersecurity, d$treatment_cybersecurity)
 ```
 
-```{r}
-d <- data
-d <- d %>% filter(., Progress == 100)
 
-# filter for subjects who consented to take the survey
-d <- d[which(d$consent == 1),]
-
-# filter for subjects who are from USA
-d <- d %>% filter(., country == "United States")
-
-# filter out subjects who took the survey more than once
-subjects.repeater <- d %>% group_by(IPAddress) %>% summarize(freq = sum(n())) %>% filter(freq > 1)
-d <- d %>% filter(!(IPAddress %in% subjects.repeater$IPAddress))
-
-# indicate which subjects are in treatment and which are in control
-# since all subjects complete the survey by this point, this is a valid way to tag the subjects
-d$treatment_ind <- ifelse(is.na(d$control_cybersecurity_Page.Submit), 1, 0)
-
-# combining the scores into one
-d$employment_score <- ifelse(is.na(d$treatment_employment), d$control_employment, d$treatment_employment)
-d$education_score <- ifelse(is.na(d$treatment_education), d$control_education, d$treatment_education)
-d$retirement_score <- ifelse(is.na(d$treatment_retirement), d$control_retirement, d$treatment_retirement)
-d$cybersecurity_score <- ifelse(is.na(d$treatment_cybersecurity), d$control_cybersecurity, d$treatment_cybersecurity)
-```
 
 
 ## Research Design
@@ -399,10 +376,11 @@ In order to derive more meaning, we re-categorized:
 
 ```{r include=FALSE}
 # re-categorize age, ethnicity
+library(plyr)
 d <- d %>% mutate(age = recode_factor(age, 
-                                     `18 - 24` = "young adult", `25 - 34` = "young adult",
-                                     `35 - 44` = "middle-aged adult", `45 - 54` = "middle-aged adult",
-                                     `55 - 64` = "old adult", `65 - 74` = "old adult", 
+                                     `18 - 24` = "18-34", `25 - 34` = "18-34",
+                                     `35 - 44` = "35-54", `45 - 54` = "35-54",
+                                     `55 - 64` = "over 54", `65 - 74` = "over 54", 
                                      .ordered = FALSE))
 d <- d %>% mutate(ethnicity = recode_factor(ethnicity, 
                                      `American Indian or Alaska Native` = "Native A.",
@@ -412,12 +390,12 @@ d <- d %>% mutate(ethnicity = recode_factor(ethnicity,
                                      `White` = "White",
                                      .ordered = FALSE))
 d <- d %>% mutate(income = recode_factor(income, 
-                                     `Rather not say` = "",
+                                     `Rather not say` = "missing",
                                      `Less than $10,000` = "low", `$10,000 - $19,999` = "low",
                                      `$20,000 - $29,999` = "low", `$30,000 - $39,999` = "low", 
                                      `$40,000 - $49,999` = "low",
-                                     `$50,000 - $59,999` = "medium", `$60,000 - $69,999` = "medium",
-                                     `$70,000 - $79,999` = "medium",
+                                     `$50,000 - $59,999` = "middle", `$60,000 - $69,999` = "middle",
+                                     `$70,000 - $79,999` = "middle",
                                      `$80,000 - $89,999` = "high", `$90,000 - $99,999` = "high",
                                      `$100,000 - $149,999` = "high", `More than $150,000` = "high",
                                      .ordered = FALSE))
@@ -441,11 +419,18 @@ d <- d %>% mutate(employment_status = recode_factor(employment_status,
                                      .ordered = FALSE))
 
 # re-order ranking
+levels(d$political_party)[levels(d$political_party)==""] <- "missing"
 d$political_party <- relevel(d$political_party, "Middle/Independent")
+
+levels(d$gender)[levels(d$gender)==""] <- "missing"
 d$gender <- relevel(d$gender, "Male")
+
+levels(d$community)[levels(d$community)==""] <- "missing"
 d$community <- relevel(d$community, "Urban")
-d$income_group <- relevel(d$income, "medium")
-d$age_group <- relevel(d$age, "middle-aged adult")
+
+d$income_group <- relevel(d$income, "middle")
+
+d$age_group <- relevel(d$age, "18-34")
 ```
 
 ### Age, gender, ethnicity
@@ -461,9 +446,9 @@ We might consider taking these covariates into consideration in our regression.
 ```{r echo=FALSE, out.width="49%", fig.align="center"}
 # age
 plot.age.dist <- d %>% filter(., age != "") %>% 
-                       mutate(age = recode_factor(age, `young adult` = "young", 
-                                                       `middle-aged adult` = "middle",
-                                                       `old adult` = "old")) %>%
+                       mutate(age = recode_factor(age, `18-34` = "18-34", 
+                                                       `35-54` = "35-54",
+                                                       `over 54` = "over 54")) %>%
                        group_by(age, treatment_ind) %>% 
                        tally() %>%
                        ggplot(aes(x = age, y =  n, fill = factor(treatment_ind))) + 
@@ -476,7 +461,7 @@ plot.age.dist <- d %>% filter(., age != "") %>%
 grid.arrange(
   plot.age.dist,
   tableGrob(table(d$treatment_ind, d$age) %>% 
-                  .[,c("young adult", "middle-aged adult", "old adult")]),
+                  .[,c("18-34", "35-54", "over 54")]),
   nrow = 1
 )
 # gender
@@ -708,6 +693,26 @@ print(gg)
 
 To estimate any treatment effects on our subjects’ levels of optimism, we first examine the distributions of scores to verify whether ordinary least squares regression is appropriate and there are significant differences between the two groups. For each outcome measure, we see a high variance of responses, with the mean employment optimism at [5x%], retirement savings at [4X%], and cybersecurity risk at [7X%]; the education check has mean [4X]%. Within each question, the treatment and control distributions do not show significant diffyerences as measured by Cohen’s d (all less than 0.2). Still, with some imbalances in the key covariates, OLS regression can control for these differences and estimate any treatment effects with stronger precision than a comparison of means.
 
+
+```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
+plot_scores <- function(dataset, score, lab){
+  dataset$score <- score
+  new_df <- dataset[na.omit(dataset$score),]
+  new_df$Group <- factor(new_df$treatment_ind, levels = c(0,1), labels = c("Control","Treatment"))
+  ggplot(new_df, aes(score, fill = Group, colour = Group)) + geom_density(alpha = 0.2) + ggtitle(lab, subtitle = NULL) +
+    xlim(0,100)
+}
+
+par(mfrow=c(2,2))
+plot_scores(d, d$employment_score, "Employment Score")
+plot_scores(d, d$education_score, "Education Score")
+plot_scores(d, d$retirement_score, "Retirement Score")
+plot_scores(d, d$cybersecurity_score, "Cybersecurity Score")
+```
+
+
+
+
 Because of the scale and wide variance of our outcome variables, we expect that OLS regression will produce the most efficient and unbiased estimates of any treatment effects, particularly after controlling for the key covariates explored above. After hypothesizing which variables will have relationships with the outcomes, we can select models for which those covariates contribute to the model fit, according to a log-likelihood ratio test. Similarly, we also test interaction terms to estimate heterogeneous treatment effects by political preference. While our intuition is that there could be significantly different emotional responses to the Trump reference from some Left/Liberal respondents, the preliminary analysis below on retirement optimism shows little effect, if maybe a positive one.
 
 # Result
@@ -754,14 +759,16 @@ labs(col = "treatment") +
 theme(axis.text.x = element_text(angle=75, hjust=1))
 ```
 
-```{r echo=FALSE}
+```{r, results='asis'}
 lm.emp.1 <- lm(employment_score ~ treatment_ind, data = d)
 lm.emp.2 <- lm(employment_score ~ treatment_ind + political_party + 
-                 income + age + community, data = d)
+                 income_group + age + community, data = d)
 lm.emp.3 <- lm(employment_score ~ treatment_ind + treatment_ind*political_party + 
-                 income + age + community, data = d)
+                 income_group + age + community, data = d)
+lm.emp.4 <- lm(employment_score ~ treatment_ind + political_party + 
+                 income_group + age + treatment_ind*community, data = d)
 
-anova(lm.emp.3, test = "LRT")
+#anova(lm.emp.3, test = "LRT")
 
 # SWITCH TO "LATEX" FOR FINAL OUTPUT
 
@@ -774,6 +781,7 @@ cat("\\scalebox{.9}{")
 stargazer(lm.emp.1, lm.emp.2, lm.emp.3, title = "Employment Optimism", type = "text",
           column.labels = c("Treatment Only","With Covariates", "Political HTE"),
           dep.var.labels = "Employment Feeling Score (0 to 100)",
+          omit = c("political_partymissing", "income_groupmissing", "communitymissing", "treatment_ind:political_partymissing"),
           star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE, float = FALSE)
 
 cat("}") # for the end of the scalebox
@@ -816,10 +824,10 @@ theme(axis.text.x = element_text(angle=75, hjust=1))
 
 ```{r echo=FALSE}
 lm.ed.1 <- lm(education_score ~ treatment_ind, data = d)
-lm.ed.2 <- lm(education_score ~ treatment_ind + highest_education + political_party + gender + income,
+lm.ed.2 <- lm(education_score ~ treatment_ind + highest_education + political_party + gender + income_group,
               data = d)
 
-anova(lm.ed.2, test = "LRT")
+#anova(lm.ed.2, test = "LRT")
 
 # SWITCH TO "LATEX" FOR FINAL OUTPUT
 
@@ -832,6 +840,7 @@ cat("\\scalebox{.9}{")
 stargazer(lm.ed.1, lm.ed.2, title = "Value on Education", type = "text",
           column.labels = c("Treatment Only","With Covariates"),
           dep.var.labels = "Education Feeling Score (0 to 100)",
+          omit = c("political_partymissing", "gendermissing"),
           star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE)
 
 
@@ -893,11 +902,11 @@ theme(axis.text.x = element_text(angle=75, hjust=1))
 ```{r echo=FALSE}
 lm.ret.1 <- lm(retirement_score ~ treatment_ind, data = d)
 lm.ret.2 <- lm(retirement_score ~ treatment_ind + 
-                 political_party + gender + age + income + highest_education , data = d)
+                 political_party + gender + age + income_group + highest_education , data = d)
 lm.ret.3 <- lm(retirement_score ~ treatment_ind + 
-                 treatment_ind*political_party + gender + age + income + highest_education, data = d)
+                 treatment_ind*political_party + gender + age + income_group + highest_education, data = d)
 
-anova(lm.ret.3, test="LRT")
+#anova(lm.ret.3, test="LRT")
 
 cat("\\begin{table}[!htbp]")
 cat("\\centering")
@@ -908,6 +917,7 @@ cat("\\scalebox{.9}{")
 stargazer(lm.ret.1, lm.ret.2, lm.ret.3, title = "Retirement Optimism", type = "text",
           column.labels = c("Treatment Only","With Covariates", "Political HTE"),
           dep.var.labels = "Retirement Feeling Score (0 to 100)",
+          omit = c("political_partymissing", "gendermissing", "income_groupmissing"),
           star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE, float = FALSE)
 
 cat("}") # for the end of the scalebox
@@ -964,7 +974,7 @@ lm.sec.2 <- lm(cybersecurity_score ~ treatment_ind + political_party + age, data
 lm.sec.3 <- lm(cybersecurity_score ~ treatment_ind + treatment_ind*political_party + age, data = d)
 
 
-anova(lm.sec.3, test="LRT")
+#anova(lm.sec.3, test="LRT")
 
 
 # SWITCH TO "LATEX" FOR FINAL OUTPUT
@@ -978,16 +988,20 @@ cat("\\scalebox{.9}{")
 stargazer(lm.sec.1, lm.sec.2, lm.sec.3, title = "Cybersecurity Risk", type = "text",
           column.labels = c("Treatment Only","With Covariates", "Political HTE"),
           dep.var.labels = "Cybersecurity Risk Feeling Score (0 to 100)",
+          omit = c("political_partymissing", "political_partymissing"),
           star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE)
 
 cat("}") # for the end of the scalebox
 cat("\\end{table}")
 ```
-```
+
+
 
 # Conclusion
 
+
 While we are relieved to find little evidence that a reminder of Trump affects important measures optimism within our sample, we consider several possible explanations and limitations of the study. First, we hope that there is no true treatment effect because despite what is portrayed across political media, most respondents are not affected when it comes to the more important priorities in life; for example, few in the political media expected an election day win for Trump. Along those lines, we wonder whether there has been any temporal shift in the roughly year and a half since the peak of election campaigning; perhaps individuals who were once emotionally triggered by Trump have regressed to their mean levels of optimism. Alternatively, we expect that there are still segments of the population who would have a heterogeneous treatment effect, but that our collected subject attributes do not identify that segment; because of the diverse preferences of our respondents, estimating the average treatment effect may not be a strong measure. Or, more likely, those who are most affected by Trump are highly cognizant of his presidency all the time, and have thus adjusted their optimism levels accordingly. Lastly, our survey is limited to Mechanical Turks who may not be representative of the larger American population: while MTurk tends to represent the younger people well [4] and our sample appears to reflect population proportions across several covariates, it still seems likely that a particular type of individual is drawn to survey-taking through the platform and may be inherently different than the rest of the population.
+
 
 With those conjectures in mind, we recognize the limitations this experimental design. For example, while we took steps to force a minimum time spent on a given prompt, we could not enforce users to actually read and process the content. Without innocuous attention checks for the Trump reference, which would likely decrease our sample size and statistical power, we cannot know how many of our roughly 600 respondents processed his relation. There are also likely a number of attributes that drive our respondents’ scores and reactions to the Trump reference, many of which would be a challenge to request in a simple survey, such as positions on deeply-divided moral issues. Relatedly, we find it disappointing that so few topics--notwithstanding our chosen topics for this survey--are devoid of political differences but still related to Trump. However, we are also relieved to see a sizeable portion of our respondent group continues to be strongly optimistic about some of the more important parts of their lives.
 
