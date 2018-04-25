@@ -11,7 +11,7 @@ output:
 # Introduction 
 
 In the uncharted world of the Donald Trump presidency, there is an abundance of division,
-misinformation, confirmation bias, and at times cognitive dissonance. While there is nothing new about partisan politics and presidential approval dividing along political lines, we suspect that Trump elicits a distinctive emotional response from many that transcends this typical political divide. For example, as mainstream media sources have been clear in their opposition--such as the Washington Post’s post-inauguration slogan[1], “Democracy Dies in Darkness”--many conservative media and political pundits have reacted to the rise of Trump similarly, with National Review publishing an issue[2] titled “Against Trump,” prior to election day. We wonder whether this strong emotional response is prevalent and felt outside of the media and political punditry and seek to test whether even a subtle reminder of Trump can cause a moment of cognitive dissonance (i.e. inconsistent beliefs triggered by emotion). Or, alternatively, do we observe that typical Americans are consistent in their levels of optimism about the most important aspects of their lives, irrespective of who is president?
+misinformation, confirmation bias, and at times cognitive dissonance. While there is nothing new about partisan politics and presidential approval dividing along political lines, we suspect that Trump elicits a distinctive emotional response from many that transcends this typical political divide. For example, as mainstream media sources have been clear in their opposition--such as the Washington Post's post-inauguration slogan[1], "Democracy Dies in Darkness"--many conservative media and political pundits have reacted to the rise of Trump similarly, with National Review publishing an issue[2] titled "Against Trump," prior to election day. We wonder whether this strong emotional response is prevalent and felt outside of the media and political punditry and seek to test whether even a subtle reminder of Trump can cause a moment of cognitive dissonance (i.e. inconsistent beliefs triggered by emotion). Or, alternatively, do we observe that typical Americans are consistent in their levels of optimism about the most important aspects of their lives, irrespective of who is president?
 
 # Research Question
 
@@ -304,7 +304,7 @@ Our experiment draws upon two sets of nearly identical surveys randomly assigned
 3. How do you feel about your prospects for saving enough for retirement?
 4. How would you rate the threat of cyber-attacks to your security, private information or livelihood?
 
-For those respondents who are assigned to treatment group, they see all prompts with the same type of treatment wording, which we will call the “Trump treatment” hereafter. Subjects assigned to control see no mentions of Trump, but instead see a simple reference to the same period, such as “in 2018.” An example prompt follows, with the treatment emphasized:
+For those respondents who are assigned to treatment group, they see all prompts with the same type of treatment wording, which we will call the "Trump treatment" hereafter. Subjects assigned to control see no mentions of Trump, but instead see a simple reference to the same period, such as "in 2018." An example prompt follows, with the treatment emphasized:
 
 _Now approaching a decade since the worst of the 2008 financial crisis, a steady recovery in the United States has brought a return of modest, sustained economic growth averaging roughly 2% annually, along with rising wage growth of over 3%. While rapid technological advancement has brought new efficiency and growth opportunities to many segments of the economy, many geographic areas and industries also face difficulties competing in global markets and continuing to provide economic opportunities. Overall, however, the unemployment rate has reached a decade-low of close to 4% **one year into the Donald Trump presidency**, a level lower than pre-crisis unemployment and considered by some economists to be full employment._
 
@@ -341,7 +341,7 @@ include_graphics(img_path.random_assignment)
 
 Unfortunately, even though we have requested Mechanical Turk to select subjects only in the United States, we still receive users whose country of origin is not from the United States. Out of 688 subjects, 580 reside in the United States and 108 reside outside of the United States. 
 
-```{r echo=FALSE}
+```{r, include = FALSE,  echo=FALSE}
 m <- matrix(c(data %>% filter(., country == "United States") %>% count(.), 
               data %>% filter(., country != "United States") %>% count(.)
               ), 
@@ -352,7 +352,7 @@ knitr::kable(m)
 
 In addition, we filtered out subjects who did not complete the survey (including those who did not provide their consent) as well as subjects who took the survey more than once, which left us with 557 subjects: 262 in control and 295 in treatment.   
 
-```{r echo=FALSE}
+```{r, include=FALSE, echo=FALSE}
 m <- matrix(c(d %>% filter(., treatment_ind == 0) %>% count(.), 
               d %>% filter(., treatment_ind == 1) %>% count(.),
               d %>% count(.)
@@ -445,27 +445,27 @@ We might consider taking these covariates into consideration in our regression.
 
 ```{r echo=FALSE, out.width="49%", fig.align="center"}
 # age
-plot.age.dist <- d %>% filter(., age != "") %>% 
-                       mutate(age = recode_factor(age, `18-34` = "18-34", 
-                                                       `35-54` = "35-54",
-                                                       `over 54` = "over 54")) %>%
-                       group_by(age, treatment_ind) %>% 
-                       tally() %>%
-                       ggplot(aes(x = age, y =  n, fill = factor(treatment_ind))) + 
-                         geom_bar(stat = "identity", position = "dodge") + 
-                         ggtitle("Age differences between control and treatment")  + 
-                         scale_fill_discrete(name = "Group type", 
-                                             breaks = c(0, 1), 
-                                             labels = c("Control", "Treatment")) +
-                         theme(axis.text.x = element_text(angle=90))
-grid.arrange(
-  plot.age.dist,
-  tableGrob(table(d$treatment_ind, d$age) %>% 
-                  .[,c("18-34", "35-54", "over 54")]),
-  nrow = 1
-)
+# plot.age.dist <- d %>% filter(., age != "missing") %>% 
+#                        mutate(age = recode_factor(age, `18-34` = "18-34", 
+#                                                        `35-54` = "35-54",
+#                                                        `over 54` = "over 54")) %>%
+#                        group_by(age, treatment_ind) %>% 
+#                        tally() %>%
+#                        ggplot(aes(x = age, y =  n, fill = factor(treatment_ind))) + 
+#                          geom_bar(stat = "identity", position = "dodge") + 
+#                          ggtitle("Age differences between control and treatment")  + 
+#                          scale_fill_discrete(name = "Group type", 
+#                                              breaks = c(0, 1), 
+#                                              labels = c("Control", "Treatment")) +
+#                          theme(axis.text.x = element_text(angle=90))
+# grid.arrange(
+#   plot.age.dist,
+#   tableGrob(table(d$treatment_ind, d$age) %>% 
+#                   .[,c("18-34", "35-54", "over 54")]),
+#   nrow = 1
+# )
 # gender
-plot.gender.dist <- d %>% filter(., gender != "") %>% 
+plot.gender.dist <- d %>% filter(., gender != "missing") %>% 
                        group_by(gender, treatment_ind) %>% 
                        tally() %>%
                        ggplot(aes(x = gender, y =  n, fill = factor(treatment_ind))) + 
@@ -481,26 +481,26 @@ grid.arrange(
   nrow = 1
 )
 # ethnicity
-plot.ethnicity.dist <- d %>% filter(., ethnicity != "") %>% 
-                       group_by(ethnicity, treatment_ind) %>% 
-                       tally() %>%
-                       ggplot(aes(x = ethnicity, y =  n, fill = factor(treatment_ind))) + 
-                         geom_bar(stat = "identity", position = "dodge") + 
-                         ggtitle("Ethnicity differences between control and treatment")  + 
-                         scale_fill_discrete(name = "Group type", 
-                                             breaks = c(0, 1), 
-                                             labels = c("Control", "Treatment")) + 
-                         theme(axis.text.x = element_text(angle=90))
-grid.arrange(
-  plot.ethnicity.dist,
-  tableGrob(table(d$treatment_ind, d$ethnicity) %>% .[,c("Native A.", "Asian", "Black", "Other", "White")]),
-  nrow = 1
-)
+# plot.ethnicity.dist <- d %>% filter(., ethnicity != "") %>% 
+#                        group_by(ethnicity, treatment_ind) %>% 
+#                        tally() %>%
+#                        ggplot(aes(x = ethnicity, y =  n, fill = factor(treatment_ind))) + 
+#                          geom_bar(stat = "identity", position = "dodge") + 
+#                          ggtitle("Ethnicity differences between control and treatment")  + 
+#                          scale_fill_discrete(name = "Group type", 
+#                                              breaks = c(0, 1), 
+#                                              labels = c("Control", "Treatment")) + 
+#                          theme(axis.text.x = element_text(angle=90))
+# grid.arrange(
+#   plot.ethnicity.dist,
+#   tableGrob(table(d$treatment_ind, d$ethnicity) %>% .[,c("Native A.", "Asian", "Black", "Other", "White")]),
+#   nrow = 1
+# )
 ```
 
-```{r echo=FALSE, out.width="80%", fig.align="center"}
+```{r echo=FALSE, out.width="49%", fig.align="center"}
 ggplot(d %>%
-         filter(., gender != "") %>%
+         filter(., gender != "missing") %>%
          group_by(age, ethnicity, gender) %>% 
          tally(), 
        aes(x = age, y = n, fill = ethnicity)) + 
@@ -514,16 +514,16 @@ ggtitle("Gender and age composition for different racial categories")
 There are in general more Democrats than Republicans taking the survey in the young to middle-aged adult group. It was interesting to note that those who did not vote tend to affiliate themselves with the Democrat and Independent ideology. We can only assume these individuals are immigrants but further research is required for this statement to be validated. In addition, a higher percentage of Democrats lived in urban communities compared to Republicans, but again, the majority of those living in urban communities are young adults and they are a large part of our test subjects. For this reason, we decide to take into consideration the political_party and age as key covariates in our regression because there is a high proportion of test takers who are young adults; also, we assumed that political party play a key role in the level of optimism on the treatment effect.
 
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
-ggplot(d %>%
-         filter(., political_party != "") %>%
-         group_by(can_vote, age, political_party) %>% 
-         tally(), 
-aes(x = factor(can_vote), y = n, fill = factor(age))) +
-scale_fill_manual(values = c("light green", "green", "dark green"),
-                  name = "Political Party?") + 
-geom_bar(stat = 'identity', position = 'stack') + facet_grid(~ political_party) + 
-theme(axis.text.x = element_text(angle=90, hjust=1)) + 
-ggtitle("Age and ability to vote composition for different political parties") 
+# ggplot(d %>%
+#          filter(., political_party != "") %>%
+#          group_by(can_vote, age, political_party) %>% 
+#          tally(), 
+# aes(x = factor(can_vote), y = n, fill = factor(age))) +
+# scale_fill_manual(values = c("light green", "green", "dark green"),
+#                   name = "Political Party?") + 
+# geom_bar(stat = 'identity', position = 'stack') + facet_grid(~ political_party) + 
+# theme(axis.text.x = element_text(angle=90, hjust=1)) + 
+# ggtitle("Age and ability to vote composition for different political parties") 
 
 
 ggplot(d %>%
@@ -542,7 +542,7 @@ ggtitle("Living communities and age composition for different political parties"
 
 We have discovered that the majority of the subjects live in suburban neighborhood, and on average, they tend to be married and have children. Nothing stands out of the obvious that we should take into consideration in our regression models. 
 
-```{r echo=FALSE, out.width="80%", fig.align="center"}
+```{r echo=FALSE, out.width="49%", fig.align="center"}
 ggplot(d %>%
          filter(., community != "") %>%
          group_by(community, marital_status, have_kids) %>% 
@@ -586,23 +586,23 @@ scale_fill_discrete(name = "Group type",
                     labels = c("Control", "Treatment")) +
 theme(axis.text.x = element_text(angle=90))
 
-d %>% filter(., highest_education != "") %>% 
-      group_by(highest_education, treatment_ind) %>% 
-      tally() %>%
-ggplot(aes(x = highest_education, y =  n, fill = factor(treatment_ind))) + 
-geom_bar(stat = "identity", position = "dodge") + 
-ggtitle("Completing a high education between control and treatment")  + 
-scale_fill_discrete(name = "Group type", 
-                    breaks = c(0, 1), 
-                    labels = c("Control", "Treatment")) +
-theme(axis.text.x = element_text(angle=90))
+# d %>% filter(., highest_education != "") %>% 
+#       group_by(highest_education, treatment_ind) %>% 
+#       tally() %>%
+# ggplot(aes(x = highest_education, y =  n, fill = factor(treatment_ind))) + 
+# geom_bar(stat = "identity", position = "dodge") + 
+# ggtitle("Completing a high education between control and treatment")  + 
+# scale_fill_discrete(name = "Group type", 
+#                     breaks = c(0, 1), 
+#                     labels = c("Control", "Treatment")) +
+# theme(axis.text.x = element_text(angle=90))
 ```
 
 ### Internet
 
 We also ask subjects question regarding their internet usage. Unfortunately, these covariates do not appear helpful since the majority of the subjects use internet daily and pay for their internet themselves.
 
-```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
+```{r, include = FALSE, echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 # internet from home
 d %>% filter(., internet_from_home != "") %>% 
       group_by(internet_from_home, treatment_ind) %>% 
@@ -691,7 +691,7 @@ print(gg)
 
 ## Modeling choices
 
-To estimate any treatment effects on our subjects’ levels of optimism, we first examine the distributions of scores to verify whether ordinary least squares regression is appropriate and there are significant differences between the two groups. For each outcome measure, we see a high variance of responses, with the mean employment optimism at [5x%], retirement savings at [4X%], and cybersecurity risk at [7X%]; the education check has mean [4X]%. Within each question, the treatment and control distributions do not show significant diffyerences as measured by Cohen’s d (all less than 0.2). Still, with some imbalances in the key covariates, OLS regression can control for these differences and estimate any treatment effects with stronger precision than a comparison of means.
+To estimate any treatment effects on our subjects' levels of optimism, we first examine the distributions of scores to verify whether ordinary least squares regression is appropriate and there are significant differences between the two groups. For each outcome measure, we see a high variance of responses, with the mean employment optimism at [5x%], retirement savings at [4X%], and cybersecurity risk at [7X%]; the education check has mean [4X]%. Within each question, the treatment and control distributions do not show significant diffyerences as measured by Cohen's d (all less than 0.2). Still, with some imbalances in the key covariates, OLS regression can control for these differences and estimate any treatment effects with stronger precision than a comparison of means.
 
 
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
@@ -719,35 +719,35 @@ Because of the scale and wide variance of our outcome variables, we expect that 
 
 ## Employment
 
-For our respondents’ outlook on employment opportunities, we hypothesized that in addition to the treatment, the covariates representing political preference, income level, education, age, gender and community (rural, suburban and urban) would have effects; these were informed both by intuition and our exploration of the data above. After running a log-likelihood ratio test on the above regression, we found that only political preference, income, and community significantly improved the fit of the model. Our estimated treatment effect however, while consistently negative, is not statistically significant, and neither is the treatment effect on specific political preference categories (see Table 1). Unsurprisingly, the _Right/Republican_ preference has an estimated effect of over 15 points with a p-value less than 0.01, while high income also has a slight positive effect. More interesting, _Suburban_ (and to a lesser extent Rural) has a negative effect relative to _Urban_ respondents.
+For our respondents' outlook on employment opportunities, we hypothesized that in addition to the treatment, the covariates representing political preference, income level, education, age, gender and community (rural, suburban and urban) would have effects; these were informed both by intuition and our exploration of the data above. After running a log-likelihood ratio test on the above regression, we found that only political preference, income, and community significantly improved the fit of the model. Our estimated treatment effect however, while consistently negative, is not statistically significant, and neither is the treatment effect on specific political preference categories (see Table 1). Unsurprisingly, the _Right/Republican_ preference has an estimated effect at or above 15 points with a p-value less than 0.001, while _Suburban_ (and to a lesser extent Rural) has a modest negative effect relative to Urban respondents. Given the apparent differences in group means within communities, we also tested heterogeneous treatment effects but saw little evidence of a relationship.
 
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 # political party and employment score boxplot
-ggplot(d %>% filter(., political_party != ""), 
-       aes(x=factor(political_party), y=employment_score, col = as.factor(treatment_ind))) + 
-geom_boxplot() + 
-xlab("Political Party") + 
-ylab("Employment Score") + 
-labs(col = "treatment") + 
-theme(axis.text.x = element_text(angle=75, hjust=1))
+# ggplot(d %>% filter(., political_party != ""), 
+#        aes(x=factor(political_party), y=employment_score, col = as.factor(treatment_ind))) + 
+# geom_boxplot() + 
+# xlab("Political Party") + 
+# ylab("Employment Score") + 
+# labs(col = "treatment") + 
+# theme(axis.text.x = element_text(angle=75, hjust=1))
 
 # income and employment score boxplot
-ggplot(d %>% filter(., income != ""), 
-       aes(x=factor(income), y=employment_score, col = as.factor(treatment_ind))) + 
-geom_boxplot() + 
-xlab("Income") + 
-ylab("Employment Score") +
-labs(col = "treatment") + 
-theme(axis.text.x = element_text(angle=75, hjust=1))
+# ggplot(d %>% filter(., income != ""), 
+#        aes(x=factor(income), y=employment_score, col = as.factor(treatment_ind))) + 
+# geom_boxplot() + 
+# xlab("Income") + 
+# ylab("Employment Score") +
+# labs(col = "treatment") + 
+# theme(axis.text.x = element_text(angle=75, hjust=1))
 
 # age and employment score boxplot
-ggplot(d %>% filter(., age != ""), 
-       aes(x=factor(age), y=employment_score, col = as.factor(treatment_ind))) + 
-geom_boxplot() + 
-xlab("Age") + 
-ylab("Employment Score") + 
-labs(col = "treatment") + 
-theme(axis.text.x = element_text(angle=75, hjust=1))
+# ggplot(d %>% filter(., age != ""), 
+#        aes(x=factor(age), y=employment_score, col = as.factor(treatment_ind))) + 
+# geom_boxplot() + 
+# xlab("Age") + 
+# ylab("Employment Score") + 
+# labs(col = "treatment") + 
+# theme(axis.text.x = element_text(angle=75, hjust=1))
 
 # community and employment score boxplot
 ggplot(d %>% filter(., community != ""), 
@@ -759,7 +759,7 @@ labs(col = "treatment") +
 theme(axis.text.x = element_text(angle=75, hjust=1))
 ```
 
-```{r, results='asis'}
+```{r, echo=FALSE}
 lm.emp.1 <- lm(employment_score ~ treatment_ind, data = d)
 lm.emp.2 <- lm(employment_score ~ treatment_ind + political_party + 
                  income_group + age + community, data = d)
@@ -791,38 +791,38 @@ cat("\\end{table}")
 
 ## Education
 
-While our prompt on the value of education toward preparing students for the workforce did not have a Trump treatment, the variable as expected was indistinguishable from zero (see Table 2). However, to our surprise, of our conjectured covariates that would contribute to the fit of the model, _Right/Republican_ had a positive effect relative to the other categories and moderately significant at the 95% confidence level. _Female_ also had a modest positive effect at a similar significance level. Interestingly, the respondents’ level of education did _not_ have a significant effect on the subjects’ estimated _value_ of education; in other words, those who go to school longer do not rate education’s value on workforce preparedness any higher than those who do _not_ go to school as long. Similarly, level of income did not have a strong effect and did not improve the model.
+While our prompt on the value of education toward preparing students for the workforce did not have a Trump treatment, the variable as expected was indistinguishable from zero (see Table 2). However, to our surprise, of our conjectured covariates that would contribute to the fit of the model, _Right/Republican_ had a modest positive effect relative to the other categories and moderately significant at the 95% confidence level. _Female_ also had a modest positive effect at a similar significance level. Interestingly, the respondents' level of education did not have a significant effect on the subjects' estimated value of education; in other words, those who go to school longer do not rate education's value on workforce preparedness any higher than those who do not go to school as long. Similarly, level of income did not have a strong effect and did not improve the model.
 
-```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
+```{r include = FALSE, echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 # political party and education score boxplot
-ggplot(d %>% filter(., political_party != ""), 
-       aes(x=factor(political_party), y=education_score, col = as.factor(treatment_ind))) + 
-geom_boxplot() + 
-xlab("Political Party") + 
-ylab("Education Score") + 
-labs(col = "treatment") + 
-theme(axis.text.x = element_text(angle=75, hjust=1))
+# ggplot(d %>% filter(., political_party != ""), 
+#        aes(x=factor(political_party), y=education_score, col = as.factor(treatment_ind))) + 
+# geom_boxplot() + 
+# xlab("Political Party") + 
+# ylab("Education Score") + 
+# labs(col = "treatment") + 
+# theme(axis.text.x = element_text(angle=75, hjust=1))
 
 # gender and education score boxplot
-ggplot(d %>% filter(., gender != ""), 
-       aes(x=factor(gender), y=education_score, col = as.factor(treatment_ind))) + 
-geom_boxplot() + 
-xlab("Gender") + 
-ylab("Education Score") + 
-labs(col = "treatment") + 
-theme(axis.text.x = element_text(angle=75, hjust=1))
+# ggplot(d %>% filter(., gender != ""), 
+#        aes(x=factor(gender), y=education_score, col = as.factor(treatment_ind))) + 
+# geom_boxplot() + 
+# xlab("Gender") + 
+# ylab("Education Score") + 
+# labs(col = "treatment") + 
+# theme(axis.text.x = element_text(angle=75, hjust=1))
 
 # income and education score boxplot
-ggplot(d %>% filter(., income != ""), 
-       aes(x=factor(income), y=education_score, col = as.factor(treatment_ind))) + 
-geom_boxplot() + 
-xlab("Income") + 
-ylab("Education Score") +
-labs(col = "treatment") + 
-theme(axis.text.x = element_text(angle=75, hjust=1))
+# ggplot(d %>% filter(., income != ""), 
+#        aes(x=factor(income), y=education_score, col = as.factor(treatment_ind))) + 
+# geom_boxplot() + 
+# xlab("Income") + 
+# ylab("Education Score") +
+# labs(col = "treatment") + 
+# theme(axis.text.x = element_text(angle=75, hjust=1))
 ```
 
-```{r echo=FALSE}
+```{r, echo=FALSE}
 lm.ed.1 <- lm(education_score ~ treatment_ind, data = d)
 lm.ed.2 <- lm(education_score ~ treatment_ind + highest_education + political_party + gender + income_group,
               data = d)
@@ -850,56 +850,56 @@ cat("\\end{table}")
 
 ## Retirement
 
-Similarly to the estimated treatment effect on employment outlook, we see a slight positive but statistically insignificant effect on retirement savings optimism (see Table 3). Of the covariates, we again see that _Right/Republican_ is more optimistic, suggesting our topics are unfortunately more influenced by politics than we had hoped; correspondingly, _Left/Liberal_ respondents are also significantly lower than their _Middle/Independent_ counterparts. More surprising, however, is that female subjects give a significantly lower level of optimism than males (p<0.01), while both high income and high level of education have modest positive effects. Like employment outlook, there appears to be no heterogeneous treatment effects by political preference.
+Similarly to the estimated treatment effect on employment outlook, we see a slight positive but statistically insignificant effect on retirement savings optimism (see Table 3). Of the covariates, we again see that _Right/Republican_ is more optimistic than its _Left/Liberal_ counterparts, suggesting our topics are unfortunately more influenced by politics than we had hoped. We also see that lower income respondents are significantly less optimistic, as expected, while the _35-54_ year age group is significantly less optimistic than its younger counterparts. More surprising, however, is that female subjects give a significantly lower level of optimism than males (p<0.01). Like employment outlook, there appear to be no heterogeneous treatment effects by political preference.
 
-```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
+```{r include = FALSE, echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 # political party and retirement score boxplot
-ggplot(d %>% filter(., political_party != ""), 
-       aes(x=factor(political_party), y=retirement_score, col = as.factor(treatment_ind))) + 
-geom_boxplot() + 
-xlab("Political Party") + 
-ylab("Retirement Score") + 
-labs(col = "treatment") + 
-theme(axis.text.x = element_text(angle=75, hjust=1))
+# ggplot(d %>% filter(., political_party != ""), 
+#        aes(x=factor(political_party), y=retirement_score, col = as.factor(treatment_ind))) + 
+# geom_boxplot() + 
+# xlab("Political Party") + 
+# ylab("Retirement Score") + 
+# labs(col = "treatment") + 
+# theme(axis.text.x = element_text(angle=75, hjust=1))
 
 # gender and retirement score boxplot
-ggplot(d %>% filter(., gender != ""), 
-       aes(x=factor(gender), y=retirement_score, col = as.factor(treatment_ind))) + 
-geom_boxplot() + 
-xlab("Gender") + 
-ylab("Retirement Score") + 
-labs(col = "treatment") + 
-theme(axis.text.x = element_text(angle=75, hjust=1))
+# ggplot(d %>% filter(., gender != ""), 
+#        aes(x=factor(gender), y=retirement_score, col = as.factor(treatment_ind))) + 
+# geom_boxplot() + 
+# xlab("Gender") + 
+# ylab("Retirement Score") + 
+# labs(col = "treatment") + 
+# theme(axis.text.x = element_text(angle=75, hjust=1))
 
 # age and retirement score boxplot
-ggplot(d %>% filter(., age != ""), 
-       aes(x=factor(age), y=retirement_score, col = as.factor(treatment_ind))) + 
-geom_boxplot() + 
-xlab("Age") + 
-ylab("Retirement Score") + 
-labs(col = "treatment") + 
-theme(axis.text.x = element_text(angle=75, hjust=1))
+# ggplot(d %>% filter(., age != ""), 
+#        aes(x=factor(age), y=retirement_score, col = as.factor(treatment_ind))) + 
+# geom_boxplot() + 
+# xlab("Age") + 
+# ylab("Retirement Score") + 
+# labs(col = "treatment") + 
+# theme(axis.text.x = element_text(angle=75, hjust=1))
 
 # income and retirement score boxplot
-ggplot(d %>% filter(., income != ""), 
-       aes(x=factor(income), y=retirement_score, col = as.factor(treatment_ind))) + 
-geom_boxplot() + 
-xlab("Income") + 
-ylab("Retirement Score") +
-labs(col = "treatment") + 
-theme(axis.text.x = element_text(angle=75, hjust=1))
+# ggplot(d %>% filter(., income != ""), 
+#        aes(x=factor(income), y=retirement_score, col = as.factor(treatment_ind))) + 
+# geom_boxplot() + 
+# xlab("Income") + 
+# ylab("Retirement Score") +
+# labs(col = "treatment") + 
+# theme(axis.text.x = element_text(angle=75, hjust=1))
 
 # highest education and retirement score boxplot
-ggplot(d %>% filter(., highest_education != ""), 
-       aes(x=factor(highest_education), y=retirement_score, col = as.factor(treatment_ind))) + 
-geom_boxplot() + 
-xlab("Highest Education") + 
-ylab("Retirement Score") +
-labs(col = "treatment") + 
-theme(axis.text.x = element_text(angle=75, hjust=1))
+# ggplot(d %>% filter(., highest_education != ""),
+#        aes(x=factor(highest_education), y=retirement_score, col = as.factor(treatment_ind))) +
+# geom_boxplot() +
+# xlab("Highest Education") +
+# ylab("Retirement Score") +
+# labs(col = "treatment") +
+# theme(axis.text.x = element_text(angle=75, hjust=1))
 ```
 
-```{r echo=FALSE}
+```{r, echo=FALSE}
 lm.ret.1 <- lm(retirement_score ~ treatment_ind, data = d)
 lm.ret.2 <- lm(retirement_score ~ treatment_ind + 
                  political_party + gender + age + income_group + highest_education , data = d)
@@ -926,46 +926,46 @@ cat("\\end{table}")
 
 ## Cybersecurity
 
-Unlike the prior topics which are more economic and perhaps present in day-to-day life, the risk of cybersecurity produced some interesting relationships (see Table 4). While the covariate _Right/Republican_ has a significantly more positive effect than all others (i.e. perceiving the risk to be higher), they perceived the risk to be _lower_ when in the treatment group, a modest heterogeneous treatment effect at the 5% significance level. Meanwhile, older respondents have a higher estimated score, while income, age and education did not improve the estimated model.
+Unlike the prior topics which are more economic and perhaps present in day-to-day life, the cybersecurity risk outcome is likely influenced by one's consumption of various news sources, with again no clear effect from our Trump treatment (see Table 4). The primary drivers of the risk score come from respondents identified as _Right/Republican_ and over the age of 54 (p<0.001). Meanwhile income, gender and education did not improve the estimated model.
 
-```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
+```{r, include = FALSE, echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 # political party and cybersecurity score boxplot
-ggplot(d %>% filter(., political_party != ""), 
-       aes(x=factor(political_party), y=cybersecurity_score, col = as.factor(treatment_ind))) + 
-geom_boxplot() + 
-xlab("Political Party") + 
-ylab("Cybersecurity Score") + 
-labs(col = "treatment") + 
-theme(axis.text.x = element_text(angle=75, hjust=1))
-
-
-# income and cybersecurity score boxplot
-ggplot(d %>% filter(., income != "" & political_party != ""), 
-       aes(x=factor(income), y=cybersecurity_score, col = as.factor(treatment_ind))) + 
-geom_boxplot() + 
-xlab("Income") + 
-ylab("Cybersecurity Score") + 
-labs(col = "treatment") + 
-theme(axis.text.x = element_text(angle=75, hjust=1))
-
-# age and cybersecurity score boxplot
-ggplot(d %>% filter(., age != "" & political_party != ""), 
-       aes(x=factor(age), y=cybersecurity_score, col = as.factor(treatment_ind))) + 
-geom_boxplot() + 
-xlab("Age") + 
-ylab("Cybersecurity Score") + 
-labs(col = "treatment") + 
-theme(axis.text.x = element_text(angle=75, hjust=1))
-
-
-# highest_education and cybersecurity score boxplot
-ggplot(d %>% filter(., highest_education != "" & political_party != ""), 
-       aes(x=factor(highest_education), y=cybersecurity_score, col = as.factor(treatment_ind))) + 
-geom_boxplot() + 
-xlab("High Education Completed") + 
-ylab("Cybersecurity Score") + 
-labs(col = "treatment") + 
-theme(axis.text.x = element_text(angle=75, hjust=1))
+# ggplot(d %>% filter(., political_party != ""), 
+#        aes(x=factor(political_party), y=cybersecurity_score, col = as.factor(treatment_ind))) + 
+# geom_boxplot() + 
+# xlab("Political Party") + 
+# ylab("Cybersecurity Score") + 
+# labs(col = "treatment") + 
+# theme(axis.text.x = element_text(angle=75, hjust=1))
+# 
+# 
+# # income and cybersecurity score boxplot
+# ggplot(d %>% filter(., income != "" & political_party != ""), 
+#        aes(x=factor(income), y=cybersecurity_score, col = as.factor(treatment_ind))) + 
+# geom_boxplot() + 
+# xlab("Income") + 
+# ylab("Cybersecurity Score") + 
+# labs(col = "treatment") + 
+# theme(axis.text.x = element_text(angle=75, hjust=1))
+# 
+# # age and cybersecurity score boxplot
+# ggplot(d %>% filter(., age != "" & political_party != ""), 
+#        aes(x=factor(age), y=cybersecurity_score, col = as.factor(treatment_ind))) + 
+# geom_boxplot() + 
+# xlab("Age") + 
+# ylab("Cybersecurity Score") + 
+# labs(col = "treatment") + 
+# theme(axis.text.x = element_text(angle=75, hjust=1))
+# 
+# 
+# # highest_education and cybersecurity score boxplot
+# ggplot(d %>% filter(., highest_education != "" & political_party != ""), 
+#        aes(x=factor(highest_education), y=cybersecurity_score, col = as.factor(treatment_ind))) + 
+# geom_boxplot() + 
+# xlab("High Education Completed") + 
+# ylab("Cybersecurity Score") + 
+# labs(col = "treatment") + 
+# theme(axis.text.x = element_text(angle=75, hjust=1))
 ```
 
 ```{r echo=FALSE}
@@ -1003,7 +1003,7 @@ cat("\\end{table}")
 While we are relieved to find little evidence that a reminder of Trump affects important measures optimism within our sample, we consider several possible explanations and limitations of the study. First, we hope that there is no true treatment effect because despite what is portrayed across political media, most respondents are not affected when it comes to the more important priorities in life; for example, few in the political media expected an election day win for Trump. Along those lines, we wonder whether there has been any temporal shift in the roughly year and a half since the peak of election campaigning; perhaps individuals who were once emotionally triggered by Trump have regressed to their mean levels of optimism. Alternatively, we expect that there are still segments of the population who would have a heterogeneous treatment effect, but that our collected subject attributes do not identify that segment; because of the diverse preferences of our respondents, estimating the average treatment effect may not be a strong measure. Or, more likely, those who are most affected by Trump are highly cognizant of his presidency all the time, and have thus adjusted their optimism levels accordingly. Lastly, our survey is limited to Mechanical Turks who may not be representative of the larger American population: while MTurk tends to represent the younger people well [4] and our sample appears to reflect population proportions across several covariates, it still seems likely that a particular type of individual is drawn to survey-taking through the platform and may be inherently different than the rest of the population.
 
 
-With those conjectures in mind, we recognize the limitations this experimental design. For example, while we took steps to force a minimum time spent on a given prompt, we could not enforce users to actually read and process the content. Without innocuous attention checks for the Trump reference, which would likely decrease our sample size and statistical power, we cannot know how many of our roughly 600 respondents processed his relation. There are also likely a number of attributes that drive our respondents’ scores and reactions to the Trump reference, many of which would be a challenge to request in a simple survey, such as positions on deeply-divided moral issues. Relatedly, we find it disappointing that so few topics--notwithstanding our chosen topics for this survey--are devoid of political differences but still related to Trump. However, we are also relieved to see a sizeable portion of our respondent group continues to be strongly optimistic about some of the more important parts of their lives.
+With those conjectures in mind, we recognize the limitations this experimental design. For example, while we took steps to force a minimum time spent on a given prompt, we could not enforce users to actually read and process the content. Without innocuous attention checks for the Trump reference, which would likely decrease our sample size and statistical power, we cannot know how many of our roughly 600 respondents processed his relation. There are also likely a number of attributes that drive our respondents' scores and reactions to the Trump reference, many of which would be a challenge to request in a simple survey, such as positions on deeply-divided moral issues. Relatedly, we find it disappointing that so few topics--notwithstanding our chosen topics for this survey--are devoid of political differences but still related to Trump. However, we are also relieved to see a sizeable portion of our respondent group continues to be strongly optimistic about some of the more important parts of their lives.
 
 # References
 
@@ -1012,8 +1012,8 @@ www.people-press.org/2017/10/05/the-partisan-divide-on-political-values-grows-ev
 
 2. "Donald Trump -- Conservative Movement Shouldn't Support Him | National Review." National Review: Conservative News, Opinion, Politics, Policy, & Current Events, 22 Jan. 2016, www.nationalreview.com/2016/01/donald-trump-conservative-movement-menace.
 
-3. Borick, Christopher. “Capital - Are American Workers More Optimistic under Trump?” BBC, BBC, 8 Nov. 2017, www.bbc.com/capital/story/20171108-are-american-workers-more-optimistic-under-trump.
+3. Borick, Christopher. "Capital - Are American Workers More Optimistic under Trump?"" BBC, BBC, 8 Nov. 2017, www.bbc.com/capital/story/20171108-are-american-workers-more-optimistic-under-trump.
 
-4. Huff, Connor and Dustin Tingley, “'Who are these people?' Evaluating the demographic characteristics and political preferences of MTurk survey respondents," _Research and Politics_, July-September 2015: 1–12, http://journals.sagepub.com/doi/pdf/10.1177/2053168015604648
+4. Huff, Connor and Dustin Tingley, "'Who are these people?' Evaluating the demographic characteristics and political preferences of MTurk survey respondents," _Research and Politics_, July-September 2015: 1-12, http://journals.sagepub.com/doi/pdf/10.1177/2053168015604648
 
 5. "U.S. Census Bureau QuickFacts: UNITED STATES." Census.gov. 1 Jul. 2017, http://www.census.gov/quickfacts/fact/table/US/PST045217
