@@ -673,8 +673,7 @@ ggmap(map) + geom_point(
 
 ## Modeling choices
 
-To estimate any treatment effects on our subjects' levels of optimism, we first examine the distributions of scores to verify whether ordinary least squares regression is appropriate and there are significant differences between the two groups. For each outcome measure, we see a high variance of responses, with the mean employment optimism at [5x], retirement savings at [4X], and cybersecurity risk at [7X]; the education check has mean [4X]. Within each question, the treatment and control distributions do not show significant diffyerences as measured by Cohen's d (all less than 0.2). Still, with some imbalances in the key covariates, OLS regression can control for these differences and estimate any treatment effects with stronger precision than a comparison of means.
-
+To estimate any treatment effects on our subjects' levels of optimism, we first examine the distributions of scores to verify whether ordinary least squares regression is appropriate and there are significant differences between the two groups. For each outcome measure, we see a high variance of responses, with the mean employment optimism at 59.4, retirement savings at 43.3, and cybersecurity risk at 70.0; the education check has mean 43.8. Within each question, the treatment and control distributions do not show significant diffyerences as measured by Cohen's d (all less than 0.2). Still, with some imbalances in the key covariates, OLS regression can control for these differences and estimate any treatment effects with stronger precision than a comparison of means.
 
 ```{r, include=FALSE}
 mean(d$employment_score, na.rm = T)
@@ -683,8 +682,6 @@ mean(d$retirement_score, na.rm = T)
 mean(d$cybersecurity_score, na.rm = T)
 ```
 
-
-
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 plot_scores <- function(dataset, score, lab){
   dataset$score <- score
@@ -702,29 +699,10 @@ plot_scores(d, d$cybersecurity_score, "Cybersecurity Score")
 ```
 
 
-To estimate any treatment effects on our subjects' levels of optimism, we first examine the distributions of scores to verify whether ordinary least squares regression is appropriate and there are significant differences between the two groups. For each outcome measure, we see a high variance of responses, with the mean employment optimism at [5x%], retirement savings at [4X%], and cybersecurity risk at [7X%]; the education check has mean [4X]%. Within each question, the treatment and control distributions do not show significant diffyerences as measured by Cohen's d (all less than 0.2). Still, with some imbalances in the key covariates, OLS regression can control for these differences and estimate any treatment effects with stronger precision than a comparison of means.
+Because of the scale and wide variance of our outcome variables, we expect that OLS regression will produce the most efficient and unbiased estimates of any treatment effects, particularly after controlling for the key covariates explored above. After hypothesizing which variables will have relationships with the outcomes, we can select models for which those covariates contribute to the model fit, according to a log-likelihood ratio test. Similarly, we also test interaction terms to estimate heterogeneous treatment effects by political preference. While our intuition is that there could be significantly different emotional responses to the Trump reference from some _Left/Liberal_ respondents, the preliminary analysis below on retirement optimism shows little effect, if maybe a positive one.
 
 
-```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
-plot_scores <- function(dataset, score, lab){
-  dataset$score <- score
-  new_df <- dataset[na.omit(dataset$score),]
-  new_df$Group <- factor(new_df$treatment_ind, levels = c(0,1), labels = c("Control","Treatment"))
-  ggplot(new_df, aes(score, fill = Group, colour = Group)) + geom_density(alpha = 0.2) + ggtitle(lab, subtitle = NULL) +
-    xlim(0,100)
-}
-
-par(mfrow=c(2,2))
-plot_scores(d, d$employment_score, "Employment Score")
-plot_scores(d, d$education_score, "Education Score")
-plot_scores(d, d$retirement_score, "Retirement Score")
-plot_scores(d, d$cybersecurity_score, "Cybersecurity Score")
-```
-
-
-Because of the scale and wide variance of our outcome variables, we expect that OLS regression will produce the most efficient and unbiased estimates of any treatment effects, particularly after controlling for the key covariates explored above. After hypothesizing which variables will have relationships with the outcomes, we can select models for which those covariates contribute to the model fit, according to a log-likelihood ratio test. Similarly, we also test interaction terms to estimate heterogeneous treatment effects by political preference. While our intuition is that there could be significantly different emotional responses to the Trump reference from some Left/Liberal respondents, the preliminary analysis below on retirement optimism shows little effect, if maybe a positive one.
-
-# Result
+# Results
 
 ## Employment
 
@@ -732,13 +710,13 @@ For our respondents' outlook on employment opportunities, we hypothesized that i
 
 ```{r echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 # political party and employment score boxplot
-# ggplot(d %>% filter(., political_party != ""), 
-#        aes(x=factor(political_party), y=employment_score, col = as.factor(treatment_ind))) + 
-# geom_boxplot() + 
-# xlab("Political Party") + 
-# ylab("Employment Score") + 
-# labs(col = "treatment") + 
-# theme(axis.text.x = element_text(angle=75, hjust=1))
+ggplot(d %>% filter(., political_party != "missing"),
+       aes(x=factor(political_party), y=employment_score, col = as.factor(treatment_ind))) +
+geom_boxplot() +
+xlab("Political Party") +
+ylab("Employment Score") +
+labs(col = "treatment") +
+theme(axis.text.x = element_text(angle=75, hjust=1))
 
 # income and employment score boxplot
 # ggplot(d %>% filter(., income != ""), 
@@ -759,7 +737,7 @@ For our respondents' outlook on employment opportunities, we hypothesized that i
 # theme(axis.text.x = element_text(angle=75, hjust=1))
 
 # community and employment score boxplot
-ggplot(d %>% filter(., community != ""), 
+ggplot(d %>% filter(., community != "missing"), 
        aes(x=factor(community), y=employment_score, col = as.factor(treatment_ind))) + 
 geom_boxplot() + 
 xlab("Community") + 
@@ -802,15 +780,15 @@ cat("\\end{table}")
 
 While our prompt on the value of education toward preparing students for the workforce did not have a Trump treatment, the variable as expected was indistinguishable from zero (see Table 2). However, to our surprise, of our conjectured covariates that would contribute to the fit of the model, _Right/Republican_ had a modest positive effect relative to the other categories and moderately significant at the 95% confidence level. _Female_ also had a modest positive effect at a similar significance level. Interestingly, the respondents' level of education did not have a significant effect on the subjects' estimated value of education; in other words, those who go to school longer do not rate education's value on workforce preparedness any higher than those who do not go to school as long. Similarly, level of income did not have a strong effect and did not improve the model.
 
-```{r include = FALSE, echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
+```{r, echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 # political party and education score boxplot
-# ggplot(d %>% filter(., political_party != ""), 
-#        aes(x=factor(political_party), y=education_score, col = as.factor(treatment_ind))) + 
-# geom_boxplot() + 
-# xlab("Political Party") + 
-# ylab("Education Score") + 
-# labs(col = "treatment") + 
-# theme(axis.text.x = element_text(angle=75, hjust=1))
+ggplot(d %>% filter(., political_party != "missing"),
+       aes(x=factor(political_party), y=education_score, col = as.factor(treatment_ind))) +
+geom_boxplot() +
+xlab("Political Party") +
+ylab("Education Score") +
+labs(col = "treatment") +
+theme(axis.text.x = element_text(angle=75, hjust=1))
 
 # gender and education score boxplot
 # ggplot(d %>% filter(., gender != ""), 
@@ -861,7 +839,7 @@ cat("\\end{table}")
 
 Similarly to the estimated treatment effect on employment outlook, we see a slight positive but statistically insignificant effect on retirement savings optimism (see Table 3). Of the covariates, we again see that _Right/Republican_ is more optimistic than its _Left/Liberal_ counterparts, suggesting our topics are unfortunately more influenced by politics than we had hoped. We also see that lower income respondents are significantly less optimistic, as expected, while the _35-54_ year age group is significantly less optimistic than its younger counterparts. More surprising, however, is that female subjects give a significantly lower level of optimism than males (p<0.01). Like employment outlook, there appear to be no heterogeneous treatment effects by political preference.
 
-```{r include = FALSE, echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
+```{r include = TRUE, echo=FALSE, out.width="49%", fig.align="center", fig.show="hold"}
 # political party and retirement score boxplot
 # ggplot(d %>% filter(., political_party != ""), 
 #        aes(x=factor(political_party), y=retirement_score, col = as.factor(treatment_ind))) + 
@@ -881,13 +859,13 @@ Similarly to the estimated treatment effect on employment outlook, we see a slig
 # theme(axis.text.x = element_text(angle=75, hjust=1))
 
 # age and retirement score boxplot
-# ggplot(d %>% filter(., age != ""), 
-#        aes(x=factor(age), y=retirement_score, col = as.factor(treatment_ind))) + 
-# geom_boxplot() + 
-# xlab("Age") + 
-# ylab("Retirement Score") + 
-# labs(col = "treatment") + 
-# theme(axis.text.x = element_text(angle=75, hjust=1))
+ggplot(d %>% filter(., age != "missing"),
+       aes(x=factor(age), y=retirement_score, col = as.factor(treatment_ind))) +
+geom_boxplot() +
+xlab("Age") +
+ylab("Retirement Score") +
+labs(col = "treatment") +
+theme(axis.text.x = element_text(angle=75, hjust=1))
 
 # income and retirement score boxplot
 # ggplot(d %>% filter(., income != ""), 
@@ -1013,6 +991,8 @@ While we are relieved to find little evidence that a reminder of Trump affects i
 
 
 With those conjectures in mind, we recognize the limitations this experimental design. For example, while we took steps to force a minimum time spent on a given prompt, we could not enforce users to actually read and process the content. Without innocuous attention checks for the Trump reference, which would likely decrease our sample size and statistical power, we cannot know how many of our roughly 600 respondents processed his relation. There are also likely a number of attributes that drive our respondents' scores and reactions to the Trump reference, many of which would be a challenge to request in a simple survey, such as positions on deeply-divided moral issues. Relatedly, we find it disappointing that so few topics--notwithstanding our chosen topics for this survey--are devoid of political differences but still related to Trump. However, we are also relieved to see a sizeable portion of our respondent group continues to be strongly optimistic about some of the more important parts of their lives.
+
+\pagebreak
 
 # References
 
