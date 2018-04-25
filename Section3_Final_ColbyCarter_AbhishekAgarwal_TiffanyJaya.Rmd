@@ -746,7 +746,7 @@ labs(col = "treatment") +
 theme(axis.text.x = element_text(angle=75, hjust=1))
 ```
 
-```{r, echo=FALSE}
+```{r, results='asis', echo=FALSE}
 lm.emp.1 <- lm(employment_score ~ treatment_ind, data = d)
 lm.emp.2 <- lm(employment_score ~ treatment_ind + political_party + 
                  income_group + age + community, data = d)
@@ -809,7 +809,7 @@ theme(axis.text.x = element_text(angle=75, hjust=1))
 # theme(axis.text.x = element_text(angle=75, hjust=1))
 ```
 
-```{r, echo=FALSE}
+```{r, results='asis', echo=FALSE}
 lm.ed.1 <- lm(education_score ~ treatment_ind, data = d)
 lm.ed.2 <- lm(education_score ~ treatment_ind + highest_education + political_party + gender + income_group,
               data = d)
@@ -886,7 +886,7 @@ theme(axis.text.x = element_text(angle=75, hjust=1))
 # theme(axis.text.x = element_text(angle=75, hjust=1))
 ```
 
-```{r, echo=FALSE}
+```{r, results='asis', echo=FALSE}
 lm.ret.1 <- lm(retirement_score ~ treatment_ind, data = d)
 lm.ret.2 <- lm(retirement_score ~ treatment_ind + 
                  political_party + gender + age + income_group + highest_education , data = d)
@@ -955,7 +955,7 @@ Unlike the prior topics which are more economic and perhaps present in day-to-da
 # theme(axis.text.x = element_text(angle=75, hjust=1))
 ```
 
-```{r echo=FALSE}
+```{r, results='asis', echo=FALSE}
 lm.sec.1 <- lm(cybersecurity_score ~ treatment_ind, data = d)
 lm.sec.2 <- lm(cybersecurity_score ~ treatment_ind + political_party + age, data = d)
 lm.sec.3 <- lm(cybersecurity_score ~ treatment_ind + treatment_ind*political_party + age, data = d)
