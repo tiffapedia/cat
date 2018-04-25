@@ -951,11 +951,20 @@ lm.sec.3 <- lm(cybersecurity_score ~ treatment_ind + treatment_ind*political_par
 
 #anova(lm.sec.3, test="LRT")
 
+cat("\\begin{table}[!htbp]")
+cat("\\centering")
+cat("\\caption{OLS Regression Result}")
+cat("\\label{Table3}")
+cat("\\scalebox{.9}{")
+
 stargazer(lm.sec.1, lm.sec.2, lm.sec.3, title = "Cybersecurity Risk", type = "latex",
           column.labels = c("Treatment Only","With Covariates", "Political HTE"),
           dep.var.labels = "Cybersecurity Risk Feeling Score (0 to 100)",
           omit = c("political_partymissing", "political_partymissing"),
-          star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE)
+          star.cutoffs = c(0.05,0.01,0.001), single.row = FALSE, float = FALSE)
+
+cat("}") # for the end of the scalebox
+cat("\\end{table}")
 
 ```
 
